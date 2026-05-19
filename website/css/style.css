@@ -391,3 +391,26 @@ footer {
 }
 .pill-ok { background: #dcfce7; color: var(--ok); }
 .pill-warn { background: #ffedd5; color: var(--warn); }
+
+.lang-select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.site-top-inner .lang-select {
+  margin-left: 0.25rem;
+}
+
+html.i18n-pending body {
+  opacity: 0;
+}
+
+html.i18n-ready body {
+  opacity: 1;
+  transition: opacity 0.12s ease;
+}
