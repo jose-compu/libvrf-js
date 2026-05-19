@@ -2,6 +2,17 @@
 
 ## Release History
 
+### v1.1.0 (2026-05-19)
+
+**R1 — Trust & quality**
+
+- RFC 9381 RSA-FDH/PSS aligned with Microsoft libvrf; cross-vector tests
+- `VRFError`, `*OrThrow`, `isRFC9381Compliant()`, `getVRFSuiteInfo()`
+- Secret-key serde, fast CI test matrix, browser smoke, coverage gate, Dependabot
+- Honest docs: EC VRF is simplified and not RFC 9381 wire-compatible
+
+**Breaking for RSA callers:** proofs and VRF values change (correctness fix vs prior releases).
+
 ### v1.0.5 (2024-12-XX)
 
 **Node.js 18.x Compatibility Fixes**
