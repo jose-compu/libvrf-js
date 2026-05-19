@@ -3,105 +3,222 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>libvrf-js | Verifiable Random Functions for JavaScript</title>
-  <meta name="description" content="RFC 9381 RSA-FDH/PSS VRF for Node.js; EC VRF for browsers. TypeScript library ported from Microsoft libvrf.">
+  <title>libvrf — Verifiable Random Functions for JavaScript</title>
+  <meta name="description" content="RFC 9381 RSA-FDH/PSS VRF for Node.js; EC VRF for browsers. TypeScript port of Microsoft libvrf.">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>libvrf-js</h1>
-      <p class="tagline">Verifiable Random Functions for Node.js and browsers</p>
-      <div class="badges">
-        <a href="https://github.com/jose-compu/libvrf-js/actions"><img src="https://github.com/jose-compu/libvrf-js/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-        <a href="https://www.npmjs.com/package/libvrf"><img src="https://img.shields.io/npm/v/libvrf.svg" alt="npm version"></a>
-        <a href="https://www.npmjs.com/package/libvrf"><img src="https://img.shields.io/npm/dm/libvrf.svg" alt="npm downloads"></a>
-        <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT">
-        <img src="https://img.shields.io/badge/Node.js-%3E%3D18-green.svg" alt="Node 18+">
-      </div>
-      <nav class="site-nav">
-        <a href="#install">Install</a>
+  <header class="site-top">
+    <div class="site-top-inner">
+      <a class="logo" href="index.html">lib<span>vrf</span></a>
+      <nav class="top-nav">
+        <a href="#concept">What is a VRF?</a>
+        <a href="#uses">Applications</a>
+        <a href="#library">Library</a>
         <a href="#quickstart">Quick start</a>
         <a href="demo.html">Live demo</a>
         <a href="https://github.com/jose-compu/libvrf-js">GitHub</a>
-        <a href="https://www.npmjs.com/package/libvrf">npm</a>
-        <a href="https://github.com/Microsoft/libvrf">C++ libvrf</a>
       </nav>
-    </header>
+      <a class="btn-npm" href="https://www.npmjs.com/package/libvrf">npm install</a>
+    </div>
+  </header>
 
-    <section>
-      <h2>What is a VRF?</h2>
-      <p>
-        A <strong>Verifiable Random Function</strong> maps a secret key and an input to a unique
-        pseudorandom output plus a proof. Only the key holder can produce the proof; anyone with the
-        public key can verify it. VRFs are used in consensus, lotteries, DNSSEC, and randomness beacons.
+  <main class="wrap">
+    <section class="hero" id="top">
+      <div>
+        <p class="section-label">Verifiable randomness</p>
+        <h1>Random you can prove.<br>Verification anyone can run.</h1>
+        <p class="lead">
+          A <strong>Verifiable Random Function</strong> maps a secret key and public input α to a
+          unique output β and a proof π. Only the key holder produces π; anyone with the public key
+          verifies it—in milliseconds.
+        </p>
+        <div class="hero-badges">
+          <a href="https://www.npmjs.com/package/libvrf"><img src="https://img.shields.io/npm/v/libvrf.svg" alt="npm"></a>
+          <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT">
+          <img src="https://img.shields.io/badge/Node.js-%3E%3D18-green.svg" alt="Node 18+">
+          <a href="https://github.com/jose-compu/libvrf-js/actions"><img src="https://github.com/jose-compu/libvrf-js/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+        </div>
+        <div class="hero-cta">
+          <a class="btn" href="#quickstart">Get started</a>
+          <a class="btn btn-outline" href="demo.html">Live demo</a>
+        </div>
+      </div>
+
+      <div class="diagram-card">
+        <h3>VRF evaluation pipeline</h3>
+        <p class="diagram-sub">One input α → proof π → verified output β</p>
+        <div class="pipeline" aria-hidden="true">
+          <div class="pipe-step pipe-input">
+            <span class="pipe-title">Input α</span>
+            <span class="pipe-sub">public message</span>
+          </div>
+          <span class="pipe-arrow">→</span>
+          <div class="pipe-step pipe-secret">
+            <span class="pipe-title">prove()</span>
+            <span class="pipe-sub">needs SK</span>
+          </div>
+          <span class="pipe-arrow">→</span>
+          <div class="pipe-step pipe-proof">
+            <span class="pipe-title">Proof π</span>
+            <span class="pipe-sub">send to verifiers</span>
+          </div>
+          <span class="pipe-arrow">→</span>
+          <div class="pipe-step pipe-verify">
+            <span class="pipe-title">verify()</span>
+            <span class="pipe-sub">uses PK</span>
+          </div>
+          <span class="pipe-arrow">→</span>
+          <div class="pipe-step pipe-output">
+            <span class="pipe-title">Output β</span>
+            <span class="pipe-sub">VRF value</span>
+          </div>
+        </div>
+        <div class="compare-bar" aria-hidden="true">
+          <span class="bar-prove"></span>
+          <span class="bar-verify"></span>
+        </div>
+        <div class="compare-labels">
+          <span>prove (holder of SK)</span>
+          <span>verify (anyone with PK)</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="concept">
+      <p class="section-label">Concept</p>
+      <h2>What is a Verifiable Random Function?</h2>
+      <p class="lead">
+        A VRF is a function <em>β = f<sub>SK</sub>(α)</em> where only someone who knows the
+        <strong>secret key SK</strong> can compute β and a <strong>proof π</strong>. Anyone with the
+        <strong>public key PK</strong> can check π quickly and recover the same β.
       </p>
+
+      <div class="cards-3">
+        <article class="feature-card">
+          <div class="icon icon-orange">🔑</div>
+          <h3>Unique &amp; pseudorandom</h3>
+          <p>β looks random to anyone without π. Same (SK, α) always gives the same β—useful for deterministic lotteries and leader election.</p>
+        </article>
+        <article class="feature-card">
+          <div class="icon icon-purple">📄</div>
+          <h3>Compact proof π</h3>
+          <p>The prover sends π with α. Verifiers do not need SK and do not redo the expensive derivation.</p>
+        </article>
+        <article class="feature-card">
+          <div class="icon icon-green">✓</div>
+          <h3>Public verify</h3>
+          <p>Validators, contracts, or clients confirm correctness with PK only—no trust in the prover’s hardware.</p>
+        </article>
+      </div>
+
+      <div class="grid-2" style="margin-top: 1.5rem;">
+        <div class="info-card">
+          <h3>Who holds what?</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">
+            <strong style="color: var(--text);">Prover</strong> — SK, runs <code>getVRFProof</code><br>
+            <strong style="color: var(--text);">Verifier</strong> — PK, runs <code>verifyVRFProof</code><br>
+            <strong style="color: var(--text);">Everyone</strong> — agrees on input α
+          </p>
+        </div>
+        <div class="info-card">
+          <h3>RFC 9381 vs this port</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">
+            <span class="pill pill-ok">RFC 9381</span> RSA-FDH &amp; RSA-PSS-NOSALT (Microsoft libvrf interop)<br><br>
+            <span class="pill pill-warn">Simplified</span> EC P-256 in browsers — not RFC wire-compatible
+          </p>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2>Features</h2>
-      <ul>
-        <li><span class="pill pill-ok">RFC 9381</span> RSA-FDH and RSA-PSS-NOSALT (interop with Microsoft libvrf)</li>
-        <li><span class="pill pill-warn">Simplified</span> EC VRF on P-256 (browser + Node; not RFC wire-compatible)</li>
-        <li>TypeScript types, <code>VRFError</code>, <code>isRFC9381Compliant()</code></li>
-        <li>RSA cross-vectors, fast CI matrix, browser bundle</li>
-      </ul>
+    <section id="uses">
+      <p class="section-label">Use cases</p>
+      <h2>Where VRFs are used</h2>
+      <p class="lead">Protocols need unpredictable, agreed-upon randomness with evidence that nobody cheated.</p>
+
+      <div class="diagram-card">
+        <h3>Leader election (simplified)</h3>
+        <p class="diagram-sub">VRF output β picks a proposer; π proves the draw was fair</p>
+        <div class="usecase-flow">
+          <div class="flow-box flow-a">Round α<small>slot / block hash</small></div>
+          <span class="pipe-arrow">→</span>
+          <div class="flow-box flow-b">prove(SK, α)<small>each candidate</small></div>
+          <span class="pipe-arrow">→</span>
+          <div class="flow-box flow-c">Proof π</div>
+          <span class="pipe-arrow">→</span>
+          <div class="flow-box flow-d">verify(PK)<small>network</small></div>
+          <span class="pipe-arrow">→</span>
+          <div class="flow-box flow-e">Lowest β wins<small>public random</small></div>
+        </div>
+      </div>
+
+      <div class="cards-3" style="margin-top: 1.25rem;">
+        <article class="feature-card">
+          <h3>DNSSEC &amp; naming</h3>
+          <p>Prove deterministic responses tied to zone keys (RSA suites in this library match RFC 9381).</p>
+        </article>
+        <article class="feature-card">
+          <h3>Randomness beacons</h3>
+          <p>Combine VRF outputs across rounds for public randomness with audit trails.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Lotteries &amp; games</h3>
+          <p>Commit to α, reveal β with π so players can verify the draw was not rigged.</p>
+        </article>
+      </div>
     </section>
 
-    <section id="install">
-      <h2>Installation</h2>
-      <pre><code>npm install libvrf</code></pre>
+    <section id="library">
+      <p class="section-label">libvrf</p>
+      <h2>This library</h2>
+      <p class="lead">TypeScript port of <a href="https://github.com/Microsoft/libvrf">Microsoft libvrf</a> — RSA in Node.js, EC in browsers via WebCrypto.</p>
+
+      <div class="lib-cards">
+        <article class="feature-card lib-card">
+          <h3>RSA-FDH</h3>
+          <p>RFC 9381 full-domain hash. 2048–4096 bit keys, SHA-256/384/512. Cross-tested vs C++ vectors.</p>
+        </article>
+        <article class="feature-card lib-card">
+          <h3>RSA-PSS-NOSALT</h3>
+          <p>RFC 9381 PSS variant without salt. Same key sizes; interop with libvrf wire format.</p>
+        </article>
+        <article class="feature-card lib-card">
+          <h3>EC P-256 (browser)</h3>
+          <p>Simplified EC VRF for demos &amp; apps. Use async APIs; not RFC ECVRF wire format.</p>
+        </article>
+      </div>
+
+      <div class="callout">
+        <strong>Production:</strong> Prefer RSA suites on Node for RFC 9381 interop. Use the
+        <a href="demo.html">live demo</a> to learn SK / PK / π / β, then deploy RSA in your backend.
+      </div>
     </section>
 
     <section id="quickstart">
-      <h2>Quick start (Node.js)</h2>
+      <p class="section-label">Developers</p>
+      <h2>Quick start</h2>
+      <pre><code>npm install libvrf</code></pre>
       <pre><code>import { VRF, VRFType } from 'libvrf';
 
-const type = VRFType.RSA_FDH_VRF_RSA2048_SHA256;
-const sk = VRF.create(type)!;
+const sk = VRF.create(VRFType.RSA_FDH_VRF_RSA2048_SHA256)!;
 const pk = sk.getPublicKey()!;
+const alpha = new TextEncoder().encode('hello');
 
-const input = new TextEncoder().encode('hello');
-const proof = sk.getVRFProof(input)!;
-const [ok, vrfValue] = pk.verifyVRFProof(input, proof);
+const proof = sk.getVRFProof(alpha)!;
+const [ok, beta] = pk.verifyVRFProof(alpha, proof);
+console.log(ok, Buffer.from(beta).toString('hex'));</code></pre>
 
-console.log('verified:', ok);
-console.log('vrf value:', Buffer.from(vrfValue).toString('hex'));</code></pre>
-
-      <h3>Browser (EC VRF only)</h3>
-      <pre><code>const sk = await libvrf.VRF.createAsync(libvrf.VRFType.EC_VRF_P256_SHA256_TAI);
-const pk = await sk.getPublicKeyAsync();
-const input = new TextEncoder().encode('hello');
-const proof = await sk.getVRFProofAsync(input);
-const [ok, value] = await pk.verifyVRFProofAsync(input, proof);</code></pre>
-      <p>
-        <a class="btn" href="demo.html">Try the live demo</a>
-        <a class="btn btn-outline" href="https://cdn.jsdelivr.net/npm/libvrf/dist/browser/libvrf.min.js">CDN bundle</a>
-      </p>
-    </section>
-
-    <section>
-      <h2>Supported suites</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Family</th><th>Types</th><th>RFC 9381</th><th>Browser</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>RSA-FDH</td><td>2048 / 3072 / 4096 + SHA-256/384/512</td><td>Yes</td><td>Node only</td></tr>
-            <tr><td>RSA-PSS-NOSALT</td><td>2048 / 3072 / 4096 + SHA-256/384/512</td><td>Yes</td><td>Node only</td></tr>
-            <tr><td>EC P-256</td><td><code>EC_VRF_P256_SHA256_TAI</code></td><td>No</td><td>Yes (async)</td></tr>
-          </tbody>
-        </table>
+      <div class="link-row">
+        <a class="link-pill primary" href="demo.html">Live demo (EC in browser)</a>
+        <a class="link-pill" href="https://github.com/jose-compu/libvrf-js">GitHub</a>
+        <a class="link-pill" href="https://www.npmjs.com/package/libvrf">npm</a>
+        <a class="link-pill" href="https://datatracker.ietf.org/doc/rfc9381/">RFC 9381</a>
       </div>
     </section>
 
     <footer>
-      <p>
-        Port of <a href="https://github.com/Microsoft/libvrf">Microsoft libvrf</a> (C++).
-        MIT License. Site: <a href="https://jose-compu.github.io/libvrf-js/">jose-compu.github.io/libvrf-js</a>
-      </p>
+      <p>MIT · <a href="https://github.com/jose-compu/libvrf-js">libvrf-js</a> · Port of <a href="https://github.com/Microsoft/libvrf">Microsoft libvrf</a></p>
     </footer>
-  </div>
+  </main>
 </body>
 </html>
