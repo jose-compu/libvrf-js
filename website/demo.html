@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live demo | libvrf-js</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    #log {
+      min-height: 12rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    label { display: block; margin: 0.75rem 0 0.25rem; color: var(--muted); font-size: 0.9rem; }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #0a0e14;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+    button.run {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button.run:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>EC VRF live demo</h1>
+      <p class="tagline">Browser WebCrypto — <code>EC_VRF_P256_SHA256_TAI</code> (simplified, not RFC 9381 wire format)</p>
+      <nav class="site-nav">
+        <a href="index.html">← Home</a>
+        <a href="https://github.com/jose-compu/libvrf-js">GitHub</a>
+      </nav>
+    </header>
+
+    <section>
+      <label for="input">VRF input</label>
+      <input type="text" id="input" value="hello libvrf" />
+
+      <button class="run" id="runBtn">Generate &amp; verify proof</button>
+
+      <div class="card" style="margin-top: 1.5rem;">
+        <pre id="log">Click the button to run…</pre>
+      </div>
+    </section>
+  </div>
+
+  <script src="assets/libvrf.min.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    const btn = document.getElementById('runBtn');
+
+    function log(msg) {
+      logEl.textContent += msg + '\n';
+    }
+
+    btn.addEventListener('click', async () => {
+      logEl.textContent = '';
+      btn.disabled = true;
+      try {
+        if (!globalThis.libvrf?.VRF) {
+          throw new Error('libvrf bundle not loaded. Run npm run website:build first.');
+        }
+        const { VRF, VRFType } = libvrf;
+        const type = VRFType.EC_VRF_P256_SHA256_TAI;
+        const input = new TextEncoder().encode(document.getElementById('input').value);
+
+        log('Creating secret key…');
+        const sk = await VRF.createAsync(type);
+        if (!sk?.isInitialized?.()) throw new Error('Key init failed');
+
+        log('Deriving public key…');
+        const pk = await sk.getPublicKeyAsync();
+
+        log('Proving…');
+        const t0 = performance.now();
+        const proof = await sk.getVRFProofAsync(input);
+        const proveMs = (performance.now() - t0).toFixed(1);
+
+        log('Verifying…');
+        const t1 = performance.now();
+        const [ok, value] = await pk.verifyVRFProofAsync(input, proof);
+        const verifyMs = (performance.now() - t1).toFixed(1);
+
+        if (!ok) throw new Error('Verification failed');
+
+        const hex = Array.from(value).map((b) => b.toString(16).padStart(2, '0')).join('');
+        log('');
+        log('✓ Proof verified');
+        log(`  Prove: ${proveMs} ms`);
+        log(`  Verify: ${verifyMs} ms`);
+        log(`  Proof size: ${proof.toBytes().length} bytes`);
+        log(`  VRF value: ${hex}`);
+      } catch (err) {
+        log('');
+        log('✗ ' + (err?.message || String(err)));
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

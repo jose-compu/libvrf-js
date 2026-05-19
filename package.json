@@ -30,6 +30,8 @@
     "test:coverage": "jest --coverage --testPathIgnorePatterns=vrf-full",
     "test:browser-smoke": "node scripts/browser-smoke.mjs",
     "benchmark": "npm run build:node && node scripts/benchmark.mjs",
+    "website:build": "npm run build:browser && node scripts/build-website.mjs",
+    "website:preview": "npm run website:build && npx --yes serve website -l 4173",
     "lint": "eslint src/**/*.ts tests/**/*.ts",
     "lint:fix": "eslint src/**/*.ts tests/**/*.ts --fix",
     "prepublishOnly": "npm run build && npm test",

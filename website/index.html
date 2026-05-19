@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>libvrf-js | Verifiable Random Functions for JavaScript</title>
+  <meta name="description" content="RFC 9381 RSA-FDH/PSS VRF for Node.js; EC VRF for browsers. TypeScript library ported from Microsoft libvrf.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>libvrf-js</h1>
+      <p class="tagline">Verifiable Random Functions for Node.js and browsers</p>
+      <div class="badges">
+        <a href="https://github.com/jose-compu/libvrf-js/actions"><img src="https://github.com/jose-compu/libvrf-js/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+        <a href="https://www.npmjs.com/package/libvrf"><img src="https://img.shields.io/npm/v/libvrf.svg" alt="npm version"></a>
+        <a href="https://www.npmjs.com/package/libvrf"><img src="https://img.shields.io/npm/dm/libvrf.svg" alt="npm downloads"></a>
+        <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT">
+        <img src="https://img.shields.io/badge/Node.js-%3E%3D18-green.svg" alt="Node 18+">
+      </div>
+      <nav class="site-nav">
+        <a href="#install">Install</a>
+        <a href="#quickstart">Quick start</a>
+        <a href="demo.html">Live demo</a>
+        <a href="https://github.com/jose-compu/libvrf-js">GitHub</a>
+        <a href="https://www.npmjs.com/package/libvrf">npm</a>
+        <a href="https://github.com/Microsoft/libvrf">C++ libvrf</a>
+      </nav>
+    </header>
+
+    <section>
+      <h2>What is a VRF?</h2>
+      <p>
+        A <strong>Verifiable Random Function</strong> maps a secret key and an input to a unique
+        pseudorandom output plus a proof. Only the key holder can produce the proof; anyone with the
+        public key can verify it. VRFs are used in consensus, lotteries, DNSSEC, and randomness beacons.
+      </p>
+    </section>
+
+    <section>
+      <h2>Features</h2>
+      <ul>
+        <li><span class="pill pill-ok">RFC 9381</span> RSA-FDH and RSA-PSS-NOSALT (interop with Microsoft libvrf)</li>
+        <li><span class="pill pill-warn">Simplified</span> EC VRF on P-256 (browser + Node; not RFC wire-compatible)</li>
+        <li>TypeScript types, <code>VRFError</code>, <code>isRFC9381Compliant()</code></li>
+        <li>RSA cross-vectors, fast CI matrix, browser bundle</li>
+      </ul>
+    </section>
+
+    <section id="install">
+      <h2>Installation</h2>
+      <pre><code>npm install libvrf</code></pre>
+    </section>
+
+    <section id="quickstart">
+      <h2>Quick start (Node.js)</h2>
+      <pre><code>import { VRF, VRFType } from 'libvrf';
+
+const type = VRFType.RSA_FDH_VRF_RSA2048_SHA256;
+const sk = VRF.create(type)!;
+const pk = sk.getPublicKey()!;
+
+const input = new TextEncoder().encode('hello');
+const proof = sk.getVRFProof(input)!;
+const [ok, vrfValue] = pk.verifyVRFProof(input, proof);
+
+console.log('verified:', ok);
+console.log('vrf value:', Buffer.from(vrfValue).toString('hex'));</code></pre>
+
+      <h3>Browser (EC VRF only)</h3>
+      <pre><code>const sk = await libvrf.VRF.createAsync(libvrf.VRFType.EC_VRF_P256_SHA256_TAI);
+const pk = await sk.getPublicKeyAsync();
+const input = new TextEncoder().encode('hello');
+const proof = await sk.getVRFProofAsync(input);
+const [ok, value] = await pk.verifyVRFProofAsync(input, proof);</code></pre>
+      <p>
+        <a class="btn" href="demo.html">Try the live demo</a>
+        <a class="btn btn-outline" href="https://cdn.jsdelivr.net/npm/libvrf/dist/browser/libvrf.min.js">CDN bundle</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Supported suites</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Family</th><th>Types</th><th>RFC 9381</th><th>Browser</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>RSA-FDH</td><td>2048 / 3072 / 4096 + SHA-256/384/512</td><td>Yes</td><td>Node only</td></tr>
+            <tr><td>RSA-PSS-NOSALT</td><td>2048 / 3072 / 4096 + SHA-256/384/512</td><td>Yes</td><td>Node only</td></tr>
+            <tr><td>EC P-256</td><td><code>EC_VRF_P256_SHA256_TAI</code></td><td>No</td><td>Yes (async)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Port of <a href="https://github.com/Microsoft/libvrf">Microsoft libvrf</a> (C++).
+        MIT License. Site: <a href="https://jose-compu.github.io/libvrf-js/">jose-compu.github.io/libvrf-js</a>
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

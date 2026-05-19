@@ -14,6 +14,8 @@ A Verifiable Random Function (VRF) is a cryptographic public-key primitive that,
 
 `libvrf-js` is a TypeScript/JavaScript implementation of several VRFs for Node.js (v18+) and browsers (EC VRF only).
 
+**Website & live demo:** [jose-compu.github.io/libvrf-js](https://jose-compu.github.io/libvrf-js/) (GitHub Pages). Build locally: `npm run website:preview`.
+
 ## Features
 
 - **Multiple VRF algorithms**: RSA-FDH and RSA-PSS-NOSALT (RFC 9381); simplified EC VRF (not RFC-interoperable)

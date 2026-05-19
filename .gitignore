@@ -6,6 +6,7 @@ yarn.lock
 # Build output
 dist/
 build/
+website/assets/libvrf.min.js
 *.tsbuildinfo
 
 # Testing
