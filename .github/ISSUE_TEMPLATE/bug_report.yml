@@ -1,0 +1,18 @@
+name: Bug report
+description: Report a problem with libvrf-js
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: libvrf version
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version

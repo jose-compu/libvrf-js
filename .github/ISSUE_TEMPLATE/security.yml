@@ -1,0 +1,14 @@
+name: Security issue
+description: Report a vulnerability (do not post secrets)
+labels: [security]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include secret keys or production data. See SECURITY.md for reporting.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+    validations:
+      required: true

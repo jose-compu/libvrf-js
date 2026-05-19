@@ -327,6 +327,25 @@ export class ECSecretKey extends SecretKey {
     (cloned as any).initializeSync(this.privateKeyBytes);
     return cloned;
   }
+
+  /** Raw private scalar (32 bytes for P-256). Treat as secret material. */
+  toBytes(): Uint8Array {
+    return new Uint8Array(this.privateKeyBytes);
+  }
+
+  /** Import from raw private key bytes (Node.js sync path). */
+  static fromBytes(type: VRFType, data: Uint8Array): ECSecretKey | null {
+    if (!isECType(type) || data.length === 0 || isBrowser()) {
+      return null;
+    }
+    try {
+      const sk = new ECSecretKey(type);
+      (sk as unknown as { initializeSync(key?: Uint8Array): void }).initializeSync(data);
+      return sk.isInitialized() ? sk : null;
+    } catch {
+      return null;
+    }
+  }
 }
 
 /**

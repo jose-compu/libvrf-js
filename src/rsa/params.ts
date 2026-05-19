@@ -26,7 +26,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha256',
         padMode: constants.RSA_NO_PADDING,
-        suiteString: 'RSA-FDH-VRF-RSA2048-SHA256'
+        suiteString: '\x01'
       };
     case VRFType.RSA_FDH_VRF_RSA3072_SHA256:
       return {
@@ -36,7 +36,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha256',
         padMode: constants.RSA_NO_PADDING,
-        suiteString: 'RSA-FDH-VRF-RSA3072-SHA256'
+        suiteString: '\x01'
       };
     case VRFType.RSA_FDH_VRF_RSA4096_SHA384:
       return {
@@ -46,7 +46,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha384',
         padMode: constants.RSA_NO_PADDING,
-        suiteString: 'RSA-FDH-VRF-RSA4096-SHA384'
+        suiteString: '\x02'
       };
     case VRFType.RSA_FDH_VRF_RSA4096_SHA512:
       return {
@@ -56,7 +56,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha512',
         padMode: constants.RSA_NO_PADDING,
-        suiteString: 'RSA-FDH-VRF-RSA4096-SHA512'
+        suiteString: '\x03'
       };
     case VRFType.RSA_PSS_NOSALT_VRF_RSA2048_SHA256:
       return {
@@ -66,7 +66,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha256',
         padMode: constants.RSA_PKCS1_PSS_PADDING,
-        suiteString: 'RSA-PSS-NOSALT-VRF-RSA2048-SHA256'
+        suiteString: '\xF1RSA-PSS'
       };
     case VRFType.RSA_PSS_NOSALT_VRF_RSA3072_SHA256:
       return {
@@ -76,7 +76,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha256',
         padMode: constants.RSA_PKCS1_PSS_PADDING,
-        suiteString: 'RSA-PSS-NOSALT-VRF-RSA3072-SHA256'
+        suiteString: '\xF1RSA-PSS'
       };
     case VRFType.RSA_PSS_NOSALT_VRF_RSA4096_SHA384:
       return {
@@ -86,7 +86,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha384',
         padMode: constants.RSA_PKCS1_PSS_PADDING,
-        suiteString: 'RSA-PSS-NOSALT-VRF-RSA4096-SHA384'
+        suiteString: '\xF2RSA-PSS'
       };
     case VRFType.RSA_PSS_NOSALT_VRF_RSA4096_SHA512:
       return {
@@ -96,7 +96,7 @@ export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
         e: 65537,
         digest: 'sha512',
         padMode: constants.RSA_PKCS1_PSS_PADDING,
-        suiteString: 'RSA-PSS-NOSALT-VRF-RSA4096-SHA512'
+        suiteString: '\xF3RSA-PSS'
       };
     default:
       return null;

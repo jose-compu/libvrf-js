@@ -16,11 +16,12 @@ A Verifiable Random Function (VRF) is a cryptographic public-key primitive that,
 
 ## Features
 
-- **Multiple VRF algorithms**: RSA-FDH, RSA-PSS-NOSALT, and EC VRF (RFC 9381)
+- **Multiple VRF algorithms**: RSA-FDH and RSA-PSS-NOSALT (RFC 9381); simplified EC VRF (not RFC-interoperable)
 - **Node.js & Browsers**: EC VRF works in both Node.js and browsers; RSA VRFs work in Node.js only
 - **Type-safe**: Written in TypeScript with full type definitions
-- **Well-tested**: Comprehensive test suite ported from C++ implementation
-- **Production-ready**: Professional-grade cryptographic library
+- **Well-tested**: Full matrix over all VRF types; RFC 9381 RSA-FDH vectors from Microsoft libvrf
+- **Compliance helpers**: `isRFC9381Compliant()` and `getVRFSuiteInfo()` for safe integration
+- **Typed errors**: `VRFError` and `*OrThrow` APIs alongside legacy null-return methods
 
 ## Installation
 
@@ -104,7 +105,7 @@ The library is available via CDN:
 - `RSA_PSS_NOSALT_VRF_RSA4096_SHA512` - RSA-PSS (no salt) with 4096-bit key and SHA-512
 
 ### Elliptic Curve VRFs
-- `EC_VRF_P256_SHA256_TAI` - ECVRF with P-256 curve and SHA-256 (RFC 9381)
+- `EC_VRF_P256_SHA256_TAI` - Simplified EC VRF on P-256 / SHA-256 (not RFC 9381 wire-compatible)
 
 ## Quick Start
 
@@ -184,7 +185,20 @@ The main class providing static methods for VRF operations.
 
 #### `VRF.create(type: VRFType): SecretKey | null`
 
-Creates a new VRF secret key for the specified VRF type.
+Creates a new VRF secret key for the specified VRF type. Returns `null` on failure.
+Prefer `VRF.createOrThrow()` when you need explicit `VRFError` handling.
+
+#### `VRF.createOrThrow(type: VRFType): SecretKey`
+
+Same as `create`, but throws `VRFError` with a `VRFErrorCode` instead of returning `null`.
+
+#### `isRFC9381Compliant(type: VRFType): boolean`
+
+Returns `true` for RSA-FDH and RSA-PSS-NOSALT suites. EC VRF in this port returns `false`.
+
+#### `getVRFSuiteInfo(type: VRFType): VRFSuiteInfo | null`
+
+Returns browser support and interoperability metadata for the suite.
 
 #### `VRF.proofFromBytes(type: VRFType, data: Uint8Array): Proof | null`
 
@@ -194,13 +208,22 @@ Deserializes a VRF proof from bytes.
 
 Deserializes a VRF public key from bytes.
 
+#### `VRF.secretKeyToBytes(secretKey: SecretKey): Uint8Array | null`
+
+Serializes a secret key (RSA: PKCS#8 DER; EC: raw private scalar). **Never log or commit this output.**
+
+#### `VRF.secretKeyFromBytes(type: VRFType, data: Uint8Array): SecretKey | null`
+
+Restores a secret key from bytes. EC import uses the Node.js sync path; in browsers use `VRF.createAsync()` and `initializeAsync()` instead.
+
 ### SecretKey
 
 Represents a VRF secret key.
 
 #### Methods
 
-- `getVRFProof(input: Uint8Array): Proof | null` - Generates a VRF proof
+- `getVRFProof(input: Uint8Array): Proof | null` - Generates a VRF proof (Node.js sync)
+- `getVRFProofAsync(input)` / `getPublicKeyAsync()` - Use in browsers; sync methods throw or return `null` when not initialized
 - `getPublicKey(): PublicKey | null` - Returns the corresponding public key
 - `clone(): SecretKey` - Creates a deep copy
 - `isInitialized(): boolean` - Checks if properly initialized
@@ -309,15 +332,26 @@ npm run build:node
 # Build only for browser
 npm run build:browser
 
-# Run tests
+# Fast tests (2048 RSA + EC; default in CI)
 npm test
 
-# Run tests with coverage
+# Slow RSA 3072/4096 matrix
+npm run test:full
+
+# Coverage (same fast set as npm test)
 npm run test:coverage
+
+# Browser bundle smoke test
+npm run test:browser-smoke
+
+# Prove/verify timing
+npm run benchmark
 
 # Lint code
 npm run lint
 ```
+
+**Supported Node.js:** LTS releases **18.x, 20.x, 22.x, 24.x** (see CI matrix). Dependabot opens weekly npm update PRs.
 
 ## Examples
 

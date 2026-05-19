@@ -4,7 +4,15 @@ import NodeRSA from 'node-rsa';
 import { VRFType, isRSAType, isRSAFDHType, isRSAPSSType } from '../types';
 import { Proof, PublicKey, SecretKey } from '../base';
 import { getRSAVRFParams, RSAVRFParams } from './params';
-import { hash, concatBytes, i2osp } from '../utils';
+import { privateEncrypt, publicDecrypt, constants } from 'crypto';
+import {
+  constructRsaFdhTbs,
+  constructRsaPssTbs,
+  generateMgf1SaltFromRsaKey,
+  rsaProofToHash,
+  rsaPssNoSaltSign,
+  rsaPssNoSaltVerify,
+} from './rfc9381';
 
 /**
  * RSA VRF Proof implementation
@@ -36,8 +44,7 @@ export class RSAProof extends Proof {
       return new Uint8Array(0);
     }
 
-    // VRF value is hash of the proof
-    return hash(params.digest, this.proofBytes);
+    return rsaProofToHash(params, this.proofBytes);
   }
 
   clone(): Proof {
@@ -88,9 +95,7 @@ export class RSASecretKey extends SecretKey {
           });
         }
         
-        // Initialize MGF1 salt
-        this.mgf1Salt = new Uint8Array(hash(params.digest, 
-          new TextEncoder().encode(params.suiteString)));
+        this.mgf1Salt = generateMgf1SaltFromRsaKey(this.rsaKey);
       }
     }
   }
@@ -150,159 +155,51 @@ export class RSASecretKey extends SecretKey {
     return new RSASecretKey(this.getType(), clonedKey);
   }
 
+  /** PKCS#8 DER private key. Treat as secret material. */
+  toBytes(): Uint8Array {
+    if (!this.rsaKey) {
+      return new Uint8Array(0);
+    }
+    return new Uint8Array(this.rsaKey.exportKey('pkcs8-private-der'));
+  }
+
+  /** Import from PKCS#8 DER private key bytes. */
+  static fromBytes(type: VRFType, data: Uint8Array): RSASecretKey | null {
+    if (!isRSAType(type) || data.length === 0) {
+      return null;
+    }
+    try {
+      const rsaKey = new NodeRSA();
+      rsaKey.importKey(Buffer.from(data), 'pkcs8-private-der');
+      rsaKey.setOptions({ encryptionScheme: 'pkcs1', signingScheme: 'pkcs1' });
+      const sk = new RSASecretKey(type, rsaKey);
+      return sk.isInitialized() ? sk : null;
+    } catch {
+      return null;
+    }
+  }
+
   private rsaFDHProve(input: Uint8Array, params: RSAVRFParams): Uint8Array {
-    // RSA-FDH VRF proof generation
-    // 1. Hash input to full domain
-    const hashedInput = this.hashToFullDomain(input, params);
-    
-    // 2. Perform RSA signature (d-th power mod n)
     if (!this.rsaKey) {
       throw new Error('RSA key not initialized');
     }
-    
-    // Convert hash to bigint
-    const message = BigInt('0x' + Buffer.from(hashedInput).toString('hex'));
-    
-    // Get RSA key components
-    const keyData = this.rsaKey.exportKey('components');
-    const d = bufferToBigInt(keyData.d);
-    const n = bufferToBigInt(keyData.n);
-    
-    // Perform modular exponentiation: signature = message^d mod n
-    const signature = modPow(message, d, n);
-    
-    // Convert back to bytes
-    const modulusLength = params.bits / 8;
-    return bigIntToBytes(signature, modulusLength);
+
+    const tbs = constructRsaFdhTbs(params, this.mgf1Salt, input);
+    const pem = this.rsaKey.exportKey('pkcs8-private-pem') as string;
+    const signature = privateEncrypt(
+      { key: pem, padding: constants.RSA_NO_PADDING },
+      Buffer.from(tbs)
+    );
+    return new Uint8Array(signature);
   }
 
   private rsaPSSProve(input: Uint8Array, params: RSAVRFParams): Uint8Array {
-    // RSA-PSS-NOSALT VRF proof generation
-    // Hash input
-    const hashedInput = hash(params.digest, concatBytes(
-      new TextEncoder().encode(params.suiteString),
-      input
-    ));
-    
     if (!this.rsaKey) {
       throw new Error('RSA key not initialized');
     }
-    
-    // Apply PSS encoding with no salt
-    const encoded = this.pssEncode(hashedInput, params.bits, params);
-    
-    // Perform RSA signature
-    const message = BigInt('0x' + Buffer.from(encoded).toString('hex'));
-    const keyData = this.rsaKey.exportKey('components');
-    const d = bufferToBigInt(keyData.d);
-    const n = bufferToBigInt(keyData.n);
-    
-    const signature = modPow(message, d, n);
-    
-    const modulusLength = params.bits / 8;
-    return bigIntToBytes(signature, modulusLength);
-  }
 
-  private hashToFullDomain(input: Uint8Array, params: RSAVRFParams): Uint8Array {
-    // Hash input with suite string
-    const suiteBytes = new TextEncoder().encode(params.suiteString);
-    const combined = concatBytes(suiteBytes, input);
-    const hashed = hash(params.digest, combined);
-    
-    // Expand hash to match RSA modulus size using MGF1 with suite string as salt
-    return this.mgf1WithSalt(hashed, params.bits / 8, params);
-  }
-
-  private mgf1WithSalt(seed: Uint8Array, maskLen: number, params: RSAVRFParams): Uint8Array {
-    // MGF1 variant that includes suite string salt for VRF uniqueness
-    const hLen = hash(params.digest, new Uint8Array(0)).length;
-    if (maskLen > 0xffffffff * hLen) {
-      throw new Error('Mask too long');
-    }
-
-    const result = new Uint8Array(maskLen);
-    let offset = 0;
-    let counter = 0;
-
-    while (offset < maskLen) {
-      const counterBytes = i2osp(BigInt(counter), 4);
-      const hashInput = concatBytes(seed, this.mgf1Salt, counterBytes);
-      const hashOutput = hash(params.digest, hashInput);
-      
-      const copyLen = Math.min(hashOutput.length, maskLen - offset);
-      result.set(hashOutput.slice(0, copyLen), offset);
-      
-      offset += copyLen;
-      counter++;
-    }
-
-    return result;
-  }
-
-  private mgf1(seed: Uint8Array, maskLen: number, params: RSAVRFParams): Uint8Array {
-    // Standard MGF1 mask generation function (RFC 8017)
-    // MGF(mgfSeed, maskLen) = T1 || T2 || ... || Tn
-    // where Ti = Hash(mgfSeed || C), C is a 4-byte counter
-    const hLen = hash(params.digest, new Uint8Array(0)).length;
-    if (maskLen > 0xffffffff * hLen) {
-      throw new Error('Mask too long');
-    }
-
-    const result = new Uint8Array(maskLen);
-    let offset = 0;
-    let counter = 0;
-
-    while (offset < maskLen) {
-      const counterBytes = i2osp(BigInt(counter), 4);
-      const hashInput = concatBytes(seed, counterBytes);
-      const hashOutput = hash(params.digest, hashInput);
-      
-      const copyLen = Math.min(hashOutput.length, maskLen - offset);
-      result.set(hashOutput.slice(0, copyLen), offset);
-      
-      offset += copyLen;
-      counter++;
-    }
-
-    return result;
-  }
-
-  private pssEncode(mHash: Uint8Array, emBits: number, params: RSAVRFParams): Uint8Array {
-    // Simplified PSS encoding with no salt
-    const hLen = mHash.length;
-    const emLen = Math.ceil(emBits / 8);
-    
-    // No salt (saltLength = 0)
-    const salt = new Uint8Array(0);
-    
-    // M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt
-    const mPrime = concatBytes(
-      new Uint8Array(8),
-      mHash,
-      salt
-    );
-    
-    // H = Hash(M')
-    const H = hash(params.digest, mPrime);
-    
-    // Generate PS = 00...00
-    const PS = new Uint8Array(emLen - salt.length - hLen - 2);
-    
-    // DB = PS || 0x01 || salt
-    const DB = concatBytes(PS, new Uint8Array([0x01]), salt);
-    
-    // dbMask = MGF(H, emLen - hLen - 1)
-    const dbMask = this.mgf1(H, emLen - hLen - 1, params);
-    
-    // maskedDB = DB xor dbMask
-    const maskedDB = xorBytes(DB, dbMask);
-    
-    // Set leftmost bits to zero
-    const mask = 0xFF >> (8 * emLen - emBits);
-    maskedDB[0] &= mask;
-    
-    // EM = maskedDB || H || 0xbc
-    return concatBytes(maskedDB, H, new Uint8Array([0xbc]));
+    const tbs = constructRsaPssTbs(params, this.mgf1Salt, input);
+    return rsaPssNoSaltSign(tbs, this.rsaKey, params.digest);
   }
 }
 
@@ -320,8 +217,8 @@ export class RSAPublicKey extends PublicKey {
     }
     if (rsaKey) {
       this.rsaKey = rsaKey;
-    }
-    if (mgf1Salt) {
+      this.mgf1Salt = mgf1Salt ? new Uint8Array(mgf1Salt) : generateMgf1SaltFromRsaKey(rsaKey);
+    } else if (mgf1Salt) {
       this.mgf1Salt = new Uint8Array(mgf1Salt);
     }
   }
@@ -406,12 +303,10 @@ export class RSAPublicKey extends PublicKey {
       
       this.rsaKey = key;
       this.setType(type);
-      this.mgf1Salt = new Uint8Array(hash(params.digest, 
-        new TextEncoder().encode(params.suiteString)));
+      this.mgf1Salt = generateMgf1SaltFromRsaKey(key);
       
       return true;
-    } catch (error) {
-      console.error('Failed to import RSA public key:', error);
+    } catch {
       return false;
     }
   }
@@ -421,23 +316,16 @@ export class RSAPublicKey extends PublicKey {
       if (!this.rsaKey) {
         return false;
       }
-      
-      // Perform RSA verification (e-th power mod n)
-      const signature = BigInt('0x' + Buffer.from(proofBytes).toString('hex'));
-      const keyData = this.rsaKey.exportKey('components-public');
-      const e = typeof keyData.e === 'number' ? BigInt(keyData.e) : bufferToBigInt(keyData.e);
-      const n = bufferToBigInt(keyData.n);
-      
-      // Verify: message = signature^e mod n
-      const verified = modPow(signature, e, n);
-      const verifiedBytes = bigIntToBytes(verified, params.bits / 8);
-      
-      // Compare with expected hash
-      const expectedHash = this.hashToFullDomain(input, params);
-      
-      return bytesEqual(verifiedBytes, expectedHash);
-    } catch (error) {
-      console.error('RSA-FDH verify error:', error);
+
+      const pem = this.rsaKey.exportKey('pkcs8-public-pem') as string;
+      const verifiedBytes = publicDecrypt(
+        { key: pem, padding: constants.RSA_NO_PADDING },
+        Buffer.from(proofBytes)
+      );
+      const expectedTbs = constructRsaFdhTbs(params, this.mgf1Salt, input);
+      return bytesEqual(new Uint8Array(verifiedBytes), expectedTbs);
+    } catch {
+      // Invalid proofs may be out of range for the modulus (OpenSSL RSA_NO_PADDING)
       return false;
     }
   }
@@ -447,188 +335,14 @@ export class RSAPublicKey extends PublicKey {
       if (!this.rsaKey) {
         return false;
       }
-      
-      // Perform RSA verification
-      const signature = BigInt('0x' + Buffer.from(proofBytes).toString('hex'));
-      const keyData = this.rsaKey.exportKey('components-public');
-      const e = typeof keyData.e === 'number' ? BigInt(keyData.e) : bufferToBigInt(keyData.e);
-      const n = bufferToBigInt(keyData.n);
-      
-      const verified = modPow(signature, e, n);
-      const em = bigIntToBytes(verified, params.bits / 8);
-      
-      // Hash the input
-      const mHash = hash(params.digest, concatBytes(
-        new TextEncoder().encode(params.suiteString),
-        input
-      ));
-      
-      // Verify PSS encoding
-      return this.pssVerify(mHash, em, params.bits, params);
+
+      const tbs = constructRsaPssTbs(params, this.mgf1Salt, input);
+      return rsaPssNoSaltVerify(proofBytes, tbs, this.rsaKey, params.digest);
     } catch (error) {
       console.error('RSA-PSS verify error:', error);
       return false;
     }
   }
-
-  private hashToFullDomain(input: Uint8Array, params: RSAVRFParams): Uint8Array {
-    const suiteBytes = new TextEncoder().encode(params.suiteString);
-    const combined = concatBytes(suiteBytes, input);
-    const hashed = hash(params.digest, combined);
-    return this.mgf1WithSalt(hashed, params.bits / 8, params);
-  }
-
-  private mgf1WithSalt(seed: Uint8Array, maskLen: number, params: RSAVRFParams): Uint8Array {
-    // MGF1 variant that includes suite string salt for VRF uniqueness
-    const hLen = hash(params.digest, new Uint8Array(0)).length;
-    if (maskLen > 0xffffffff * hLen) {
-      throw new Error('Mask too long');
-    }
-
-    const result = new Uint8Array(maskLen);
-    let offset = 0;
-    let counter = 0;
-
-    while (offset < maskLen) {
-      const counterBytes = i2osp(BigInt(counter), 4);
-      const hashInput = concatBytes(seed, this.mgf1Salt, counterBytes);
-      const hashOutput = hash(params.digest, hashInput);
-      
-      const copyLen = Math.min(hashOutput.length, maskLen - offset);
-      result.set(hashOutput.slice(0, copyLen), offset);
-      
-      offset += copyLen;
-      counter++;
-    }
-
-    return result;
-  }
-
-  private mgf1(seed: Uint8Array, maskLen: number, params: RSAVRFParams): Uint8Array {
-    // Standard MGF1 mask generation function (RFC 8017)
-    const hLen = hash(params.digest, new Uint8Array(0)).length;
-    if (maskLen > 0xffffffff * hLen) {
-      throw new Error('Mask too long');
-    }
-
-    const result = new Uint8Array(maskLen);
-    let offset = 0;
-    let counter = 0;
-
-    while (offset < maskLen) {
-      const counterBytes = i2osp(BigInt(counter), 4);
-      const hashInput = concatBytes(seed, counterBytes);
-      const hashOutput = hash(params.digest, hashInput);
-      
-      const copyLen = Math.min(hashOutput.length, maskLen - offset);
-      result.set(hashOutput.slice(0, copyLen), offset);
-      
-      offset += copyLen;
-      counter++;
-    }
-
-    return result;
-  }
-
-  private pssVerify(mHash: Uint8Array, em: Uint8Array, emBits: number, params: RSAVRFParams): boolean {
-    const hLen = mHash.length;
-    const emLen = Math.ceil(emBits / 8);
-    
-    if (emLen < hLen + 2) {
-      return false;
-    }
-    
-    if (em[em.length - 1] !== 0xbc) {
-      return false;
-    }
-    
-    const maskedDB = em.slice(0, emLen - hLen - 1);
-    const H = em.slice(emLen - hLen - 1, emLen - 1);
-    
-    // Check leftmost bits
-    const mask = 0xFF >> (8 * emLen - emBits);
-    if ((maskedDB[0] & ~mask) !== 0) {
-      return false;
-    }
-    
-    // dbMask = MGF(H, emLen - hLen - 1)
-    const dbMask = this.mgf1(H, emLen - hLen - 1, params);
-    
-    // DB = maskedDB xor dbMask
-    const DB = xorBytes(maskedDB, dbMask);
-    DB[0] &= mask;
-    
-    // Check DB = PS || 0x01 || salt where salt is empty
-    // Find the 0x01 separator
-    let separatorIndex = -1;
-    for (let i = 0; i < DB.length; i++) {
-      if (DB[i] === 0x01) {
-        separatorIndex = i;
-        break;
-      } else if (DB[i] !== 0x00) {
-        return false; // Invalid padding
-      }
-    }
-    
-    if (separatorIndex === -1) {
-      return false; // No separator found
-    }
-    
-    // Verify no salt (everything after separator should be empty since saltLength=0)
-    if (separatorIndex !== DB.length - 1) {
-      return false; // Salt should be empty
-    }
-    
-    // salt is empty
-    const salt = new Uint8Array(0);
-    
-    // M' = (0x)00 00 00 00 00 00 00 00 || mHash || salt
-    const mPrime = concatBytes(new Uint8Array(8), mHash, salt);
-    
-    // H' = Hash(M')
-    const HPrime = hash(params.digest, mPrime);
-    
-    // Verify H == H'
-    return bytesEqual(H, HPrime);
-  }
-}
-
-// Helper functions
-
-function modPow(base: bigint, exp: bigint, mod: bigint): bigint {
-  let result = 1n;
-  base = base % mod;
-  
-  while (exp > 0n) {
-    if (exp % 2n === 1n) {
-      result = (result * base) % mod;
-    }
-    exp = exp >> 1n;
-    base = (base * base) % mod;
-  }
-  
-  return result;
-}
-
-function bigIntToBytes(value: bigint, length: number): Uint8Array {
-  const result = new Uint8Array(length);
-  let v = value;
-  
-  for (let i = length - 1; i >= 0; i--) {
-    result[i] = Number(v & 0xFFn);
-    v >>= 8n;
-  }
-  
-  return result;
-}
-
-function xorBytes(a: Uint8Array, b: Uint8Array): Uint8Array {
-  const length = Math.min(a.length, b.length);
-  const result = new Uint8Array(length);
-  for (let i = 0; i < length; i++) {
-    result[i] = a[i] ^ b[i];
-  }
-  return result;
 }
 
 function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
@@ -637,8 +351,4 @@ function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
     if (a[i] !== b[i]) return false;
   }
   return true;
-}
-
-function bufferToBigInt(buffer: Buffer): bigint {
-  return BigInt('0x' + buffer.toString('hex'));
 }
