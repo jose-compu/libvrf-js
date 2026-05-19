@@ -5,111 +5,194 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Live demo | libvrf-js</title>
   <link rel="stylesheet" href="css/style.css">
-  <style>
-    #log {
-      min-height: 12rem;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-    label { display: block; margin: 0.75rem 0 0.25rem; color: var(--muted); font-size: 0.9rem; }
-    input[type="text"] {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: #0a0e14;
-      color: var(--text);
-      font-family: var(--mono);
-    }
-    button.run {
-      margin-top: 1rem;
-      padding: 0.6rem 1.2rem;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    button.run:disabled { opacity: 0.5; cursor: not-allowed; }
-  </style>
+  <link rel="stylesheet" href="css/demo.css">
 </head>
-<body>
-  <div class="wrap">
-    <header>
-      <h1>EC VRF live demo</h1>
-      <p class="tagline">Browser WebCrypto — <code>EC_VRF_P256_SHA256_TAI</code> (simplified, not RFC 9381 wire format)</p>
+<body class="demo-light">
+  <div class="wrap demo-page">
+    <header class="demo-header">
+      <p class="section-label">INTERACTIVE DEMO</p>
+      <h1>EC VRF in your browser</h1>
+      <p class="tagline">
+        This page runs <code>EC_VRF_P256_SHA256_TAI</code> with WebCrypto.
+        RSA suites need Node.js — see the <a href="index.html">home page</a>.
+      </p>
       <nav class="site-nav">
         <a href="index.html">← Home</a>
         <a href="https://github.com/jose-compu/libvrf-js">GitHub</a>
       </nav>
     </header>
 
-    <section>
-      <label for="input">VRF input</label>
-      <input type="text" id="input" value="hello libvrf" />
+  <section class="demo-section">
+    <h2>What happens in one run?</h2>
+    <p class="lead">
+      A VRF takes a <strong>public input</strong> α and a <strong>secret key</strong> SK.
+      Only the holder of SK can produce a <strong>proof</strong> π.
+      Anyone with the <strong>public key</strong> PK can check π and learn the
+      <strong>VRF output</strong> β — a deterministic pseudorandom value for that α.
+    </p>
 
-      <button class="run" id="runBtn">Generate &amp; verify proof</button>
-
-      <div class="card" style="margin-top: 1.5rem;">
-        <pre id="log">Click the button to run…</pre>
+    <div class="pipeline" aria-label="VRF evaluation pipeline">
+      <div class="pipe-step pipe-input">
+        <span class="pipe-title">Input α</span>
+        <span class="pipe-sub">your message (UTF-8)</span>
       </div>
-    </section>
+      <span class="pipe-arrow" aria-hidden="true">→</span>
+      <div class="pipe-step pipe-secret">
+        <span class="pipe-title">prove()</span>
+        <span class="pipe-sub">uses SK — only you</span>
+      </div>
+      <span class="pipe-arrow" aria-hidden="true">→</span>
+      <div class="pipe-step pipe-proof">
+        <span class="pipe-title">Proof π</span>
+        <span class="pipe-sub">bytes you can send</span>
+      </div>
+      <span class="pipe-arrow" aria-hidden="true">→</span>
+      <div class="pipe-step pipe-verify">
+        <span class="pipe-title">verify()</span>
+        <span class="pipe-sub">uses PK — anyone</span>
+      </div>
+      <span class="pipe-arrow" aria-hidden="true">→</span>
+      <div class="pipe-step pipe-output">
+        <span class="pipe-title">Output β</span>
+        <span class="pipe-sub">VRF value (hash)</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo-section">
+    <h2>Glossary — what is what?</h2>
+    <div class="glossary">
+      <article class="glossary-card">
+        <h3>Secret key (SK)</h3>
+        <p>
+          Private material generated in your browser. It never leaves this page unless you export it.
+          <strong>Who can use it:</strong> only the prover — to call <code>getVRFProofAsync</code>.
+        </p>
+      </article>
+      <article class="glossary-card">
+        <h3>Public key (PK)</h3>
+        <p>
+          Derived from SK. Safe to publish. Identifies which prover family you trust.
+          <strong>Who can use it:</strong> verifiers — to call <code>verifyVRFProofAsync</code>.
+        </p>
+      </article>
+      <article class="glossary-card">
+        <h3>Input α</h3>
+        <p>
+          Any byte string (here, text you type). Same α + same SK always yields the same β and π.
+          Different α → different unpredictable β.
+        </p>
+      </article>
+      <article class="glossary-card">
+        <h3>Proof π</h3>
+        <p>
+          Evidence that β was computed correctly from α under PK.
+          Send π to a verifier along with α; they do not need SK.
+        </p>
+      </article>
+      <article class="glossary-card">
+        <h3>VRF output β</h3>
+        <p>
+          The pseudorandom value returned after successful verification (from <code>getVRFValue()</code> on the proof).
+          Behaves like a random oracle to outsiders who have not seen π.
+        </p>
+      </article>
+      <article class="glossary-card glossary-warn">
+        <h3>This EC suite vs RFC 9381</h3>
+        <p>
+          This demo uses a <strong>simplified</strong> EC construction for browsers.
+          Wire format and β differ from Microsoft libvrf / RFC 9381 ECVRF.
+          RSA-FDH/PSS in the npm package <em>are</em> RFC 9381 aligned (Node only).
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <section class="demo-section demo-run">
+    <h2>Try it</h2>
+    <p class="lead">
+      Each click generates a <em>new</em> random SK (fresh key pair). In production you would reuse one SK for many inputs.
+    </p>
+
+    <label class="field-label" for="input">
+      <span class="field-name">Input α</span>
+      <span class="field-hint">Public message — verifiers will need the same bytes</span>
+    </label>
+    <input type="text" id="input" value="hello libvrf" autocomplete="off" />
+
+    <button class="btn run" id="runBtn" type="button">Generate &amp; verify proof</button>
+
+    <div class="run-log-panel">
+      <h3>Run log <span class="hint">— what each step is doing</span></h3>
+      <div id="runLog" class="run-log" aria-live="polite">
+        <p class="log-placeholder">Press the button above. Lines appear here as the VRF runs.</p>
+      </div>
+    </div>
+
+    <ol class="steps" id="steps">
+      <li data-step="sk" class="step">Generate secret key (SK)</li>
+      <li data-step="pk" class="step">Derive public key (PK)</li>
+      <li data-step="prove" class="step">Prove: π ← prove(SK, α)</li>
+      <li data-step="verify" class="step">Verify: (ok, β) ← verify(PK, α, π)</li>
+    </ol>
+
+    <h3 class="details-heading hidden" id="detailsHeading">Detailed output — each artifact explained</h3>
+    <div id="results" class="results hidden" aria-live="polite">
+      <div class="result-block" id="block-sk">
+        <h4>Secret key (SK)</h4>
+        <p class="result-desc">Ephemeral P-256 private key — proves you know SK by producing π.</p>
+        <dl class="result-dl">
+          <dt>Status</dt><dd id="out-sk-status">—</dd>
+          <dt>Private scalar</dt><dd id="out-sk-bytes" class="mono truncate">—</dd>
+        </dl>
+      </div>
+
+      <div class="result-block" id="block-pk">
+        <h4>Public key (PK)</h4>
+        <p class="result-desc">Compressed EC point — share this so others can verify your proofs.</p>
+        <dl class="result-dl">
+          <dt>SPKI size</dt><dd id="out-pk-size">—</dd>
+          <dt>First bytes (hex)</dt><dd id="out-pk-hex" class="mono truncate">—</dd>
+        </dl>
+      </div>
+
+      <div class="result-block" id="block-alpha">
+        <h4>Input α</h4>
+        <p class="result-desc">The challenge everyone agrees on — changing one character changes β.</p>
+        <dl class="result-dl">
+          <dt>UTF-8 length</dt><dd id="out-alpha-len">—</dd>
+          <dt>Hex</dt><dd id="out-alpha-hex" class="mono truncate">—</dd>
+        </dl>
+      </div>
+
+      <div class="result-block" id="block-proof">
+        <h4>Proof π</h4>
+        <p class="result-desc">Serialized proof bytes — attach to α when sending to a verifier.</p>
+        <dl class="result-dl">
+          <dt>Size</dt><dd id="out-proof-size">—</dd>
+          <dt>Prove time</dt><dd id="out-prove-ms">—</dd>
+          <dt>First bytes (hex)</dt><dd id="out-proof-hex" class="mono truncate">—</dd>
+        </dl>
+      </div>
+
+      <div class="result-block result-block-highlight" id="block-beta">
+        <h4>VRF output β</h4>
+        <p class="result-desc">
+          Returned only if verification succeeds. Use β as lottery seed, leader election hash, etc.
+        </p>
+        <dl class="result-dl">
+          <dt>Verified?</dt><dd id="out-verify-ok">—</dd>
+          <dt>Verify time</dt><dd id="out-verify-ms">—</dd>
+          <dt>β (hex)</dt><dd id="out-beta-hex" class="mono">—</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card error-card hidden" id="errorBox" role="alert"></div>
+  </section>
   </div>
 
   <script src="assets/libvrf.min.js"></script>
-  <script>
-    const logEl = document.getElementById('log');
-    const btn = document.getElementById('runBtn');
-
-    function log(msg) {
-      logEl.textContent += msg + '\n';
-    }
-
-    btn.addEventListener('click', async () => {
-      logEl.textContent = '';
-      btn.disabled = true;
-      try {
-        if (!globalThis.libvrf?.VRF) {
-          throw new Error('libvrf bundle not loaded. Run npm run website:build first.');
-        }
-        const { VRF, VRFType } = libvrf;
-        const type = VRFType.EC_VRF_P256_SHA256_TAI;
-        const input = new TextEncoder().encode(document.getElementById('input').value);
-
-        log('Creating secret key…');
-        const sk = await VRF.createAsync(type);
-        if (!sk?.isInitialized?.()) throw new Error('Key init failed');
-
-        log('Deriving public key…');
-        const pk = await sk.getPublicKeyAsync();
-
-        log('Proving…');
-        const t0 = performance.now();
-        const proof = await sk.getVRFProofAsync(input);
-        const proveMs = (performance.now() - t0).toFixed(1);
-
-        log('Verifying…');
-        const t1 = performance.now();
-        const [ok, value] = await pk.verifyVRFProofAsync(input, proof);
-        const verifyMs = (performance.now() - t1).toFixed(1);
-
-        if (!ok) throw new Error('Verification failed');
-
-        const hex = Array.from(value).map((b) => b.toString(16).padStart(2, '0')).join('');
-        log('');
-        log('✓ Proof verified');
-        log(`  Prove: ${proveMs} ms`);
-        log(`  Verify: ${verifyMs} ms`);
-        log(`  Proof size: ${proof.toBytes().length} bytes`);
-        log(`  VRF value: ${hex}`);
-      } catch (err) {
-        log('');
-        log('✗ ' + (err?.message || String(err)));
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  </script>
+  <script src="js/demo.js"></script>
 </body>
 </html>
