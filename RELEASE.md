@@ -28,19 +28,37 @@ All tests passing (46 tests). Linting clean.
 
 ## Setup
 
-### 1. Configure NPM Token in GitHub Secrets
+### 1. NPM authentication (pick one or use both)
 
-You need to add your NPM authentication token as a GitHub secret:
+#### Option A — Trusted publishing (recommended)
 
-1. Go to https://github.com/jose-blockchain/libvrf-js/settings/secrets/actions
-2. Click "New repository secret"
-3. Name: `NPM_TOKEN`
-4. Value: Your NPM token (get it from https://www.npmjs.com/settings/YOUR_USERNAME/tokens)
-5. Click "Add secret"
+Avoids expiring tokens. On npm:
 
-Alternatively, use GitHub CLI:
+1. Open https://www.npmjs.com/package/libvrf/access
+2. **Publishing access** → **Add GitHub Actions trusted publisher**
+3. Match the repo that runs `.github/workflows/publish.yml` (e.g. `jose-compu/libvrf-js`)
+4. Workflow filename: `publish.yml`, environment: *(leave empty)*
+
+The publish workflow requests OIDC (`id-token: write`) and runs `npm publish --provenance`.
+
+#### Option B — `NPM_TOKEN` secret (fallback)
+
+If publish fails with **`npm error code E404`** on `PUT`, npm usually means **not authenticated as the package owner** (expired/revoked token or read-only token).
+
+1. Create a **Granular Access Token** at https://www.npmjs.com/settings/jose-blockchain/tokens  
+   - Permissions: **Read and write** for package `libvrf` (or all packages)  
+   - If 2FA is enabled: token type **Automation** (or enable bypass for publish)
+2. Set the GitHub secret on the repo that runs releases:
+
 ```bash
-gh secret set NPM_TOKEN --body "your-npm-token-here"
+gh secret set NPM_TOKEN --repo jose-compu/libvrf-js --body "npm_xxxxxxxx"
+```
+
+Verify locally:
+
+```bash
+npm whoami --registry https://registry.npmjs.org
+# must print: jose-blockchain
 ```
 
 ## Creating a Release
@@ -78,6 +96,22 @@ The GitHub Actions workflow will automatically publish to NPM when the release i
 5. Push tag: `git push origin v1.0.0`
 6. Create release on GitHub (web UI or CLI)
 7. The workflow will automatically publish to NPM
+
+## Workflow
+
+### Publish failed with `E404` on `npm publish`
+
+- npm returns **404** (not 403) when the token is missing, expired, or not allowed to publish `libvrf`.
+- **Fix:** rotate `NPM_TOKEN` (Option B) and/or enable trusted publishing (Option A).
+- If trusted publishing is enabled, an **expired** `NPM_TOKEN` can still break publish — update or remove that secret.
+
+### Re-run publish for an existing release
+
+```bash
+gh workflow run publish.yml --repo jose-compu/libvrf-js
+# or re-publish from Actions → Publish to NPM → Run workflow
+# or delete the GitHub release tag and recreate after fixing auth
+```
 
 ## Workflow
 

@@ -54,7 +54,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jose-blockchain/libvrf-js"
+    "url": "git+https://github.com/jose-blockchain/libvrf-js.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "registry": "https://registry.npmjs.org/"
   },
   "bugs": {
     "url": "https://github.com/jose-blockchain/libvrf-js/issues"
