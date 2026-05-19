@@ -1,207 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-page="demo">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live demo | libvrf-js</title>
+  <title>Live demo</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/demo.css">
+  <script src="js/i18n.js" defer></script>
 </head>
 <body>
   <header class="site-top">
     <div class="site-top-inner">
       <a class="logo" href="index.html">lib<span>vrf</span></a>
       <nav class="top-nav">
-        <a href="index.html">Home</a>
-        <a href="index.html#concept">What is a VRF?</a>
-        <a href="demo.html">Live demo</a>
-        <a href="https://github.com/jose-compu/libvrf-js">GitHub</a>
+        <a href="index.html" data-i18n="nav.home">Home</a>
+        <a href="index.html#concept" data-i18n="nav.concept">What is a VRF?</a>
+        <a href="demo.html" data-i18n="nav.demo">Live demo</a>
+        <a href="https://github.com/jose-compu/libvrf-js" data-i18n="nav.github">GitHub</a>
       </nav>
+      <select id="langSelect" class="lang-select" aria-label="Language">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="ja">日本語</option>
+      </select>
       <a class="btn-npm" href="https://www.npmjs.com/package/libvrf">npm install</a>
     </div>
   </header>
 
   <div class="wrap demo-page">
     <header class="demo-header">
-      <p class="section-label">Interactive demo</p>
-      <h1>EC VRF in your browser</h1>
-      <p class="lead">
-        Runs <code>EC_VRF_P256_SHA256_TAI</code> with WebCrypto.
-        RSA suites need Node.js — see the <a href="index.html">home page</a>.
-      </p>
+      <p class="section-label" data-i18n="demo.label">Interactive demo</p>
+      <h1 data-i18n="demo.title">EC VRF in your browser</h1>
+      <p class="lead" data-i18n-html="demo.lead"></p>
     </header>
 
-  <section class="demo-section">
-    <h2>What happens in one run?</h2>
-    <p class="lead">
-      A VRF takes a <strong>public input</strong> α and a <strong>secret key</strong> SK.
-      Only the holder of SK can produce a <strong>proof</strong> π.
-      Anyone with the <strong>public key</strong> PK can check π and learn the
-      <strong>VRF output</strong> β — a deterministic pseudorandom value for that α.
-    </p>
-
-    <div class="pipeline" aria-label="VRF evaluation pipeline">
-      <div class="pipe-step pipe-input">
-        <span class="pipe-title">Input α</span>
-        <span class="pipe-sub">your message (UTF-8)</span>
+    <section class="demo-section">
+      <h2 data-i18n="demo.runTitle">What happens in one run?</h2>
+      <p class="lead" data-i18n-html="demo.runLead"></p>
+      <div class="pipeline" aria-label="VRF evaluation pipeline">
+        <div class="pipe-step pipe-input">
+          <span class="pipe-title" data-i18n="pipeline.inputTitle">Input α</span>
+          <span class="pipe-sub" data-i18n="demo.pipeInputSub">your message (UTF-8)</span>
+        </div>
+        <span class="pipe-arrow" aria-hidden="true">→</span>
+        <div class="pipe-step pipe-secret">
+          <span class="pipe-title" data-i18n="pipeline.proveTitle">prove()</span>
+          <span class="pipe-sub" data-i18n="demo.pipeProveSub">uses SK — only you</span>
+        </div>
+        <span class="pipe-arrow" aria-hidden="true">→</span>
+        <div class="pipe-step pipe-proof">
+          <span class="pipe-title" data-i18n="pipeline.proofTitle">Proof π</span>
+          <span class="pipe-sub" data-i18n="demo.pipeProofSub">bytes you can send</span>
+        </div>
+        <span class="pipe-arrow" aria-hidden="true">→</span>
+        <div class="pipe-step pipe-verify">
+          <span class="pipe-title" data-i18n="pipeline.verifyTitle">verify()</span>
+          <span class="pipe-sub" data-i18n="demo.pipeVerifySub">uses PK — anyone</span>
+        </div>
+        <span class="pipe-arrow" aria-hidden="true">→</span>
+        <div class="pipe-step pipe-output">
+          <span class="pipe-title" data-i18n="pipeline.outputTitle">Output β</span>
+          <span class="pipe-sub" data-i18n="demo.pipeOutputSub">VRF value (hash)</span>
+        </div>
       </div>
-      <span class="pipe-arrow" aria-hidden="true">→</span>
-      <div class="pipe-step pipe-secret">
-        <span class="pipe-title">prove()</span>
-        <span class="pipe-sub">uses SK — only you</span>
+    </section>
+
+    <section class="demo-section">
+      <h2 data-i18n="demo.glossaryTitle">Glossary — what is what?</h2>
+      <div class="glossary">
+        <article class="glossary-card">
+          <h3 data-i18n="demo.glossSkTitle">Secret key (SK)</h3>
+          <p data-i18n-html="demo.glossSkText"></p>
+        </article>
+        <article class="glossary-card">
+          <h3 data-i18n="demo.glossPkTitle">Public key (PK)</h3>
+          <p data-i18n-html="demo.glossPkText"></p>
+        </article>
+        <article class="glossary-card">
+          <h3 data-i18n="demo.glossAlphaTitle">Input α</h3>
+          <p data-i18n-html="demo.glossAlphaText"></p>
+        </article>
+        <article class="glossary-card">
+          <h3 data-i18n="demo.glossProofTitle">Proof π</h3>
+          <p data-i18n-html="demo.glossProofText"></p>
+        </article>
+        <article class="glossary-card">
+          <h3 data-i18n="demo.glossBetaTitle">VRF output β</h3>
+          <p data-i18n-html="demo.glossBetaText"></p>
+        </article>
+        <article class="glossary-card glossary-warn">
+          <h3 data-i18n="demo.glossRfcTitle">This EC suite vs RFC 9381</h3>
+          <p data-i18n-html="demo.glossRfcText"></p>
+        </article>
       </div>
-      <span class="pipe-arrow" aria-hidden="true">→</span>
-      <div class="pipe-step pipe-proof">
-        <span class="pipe-title">Proof π</span>
-        <span class="pipe-sub">bytes you can send</span>
+    </section>
+
+    <section class="demo-section demo-run">
+      <h2 data-i18n="demo.tryTitle">Try it</h2>
+      <p class="lead" data-i18n-html="demo.tryLead"></p>
+      <label class="field-label" for="input">
+        <span class="field-name" data-i18n="demo.fieldName">Input α</span>
+        <span class="field-hint" data-i18n="demo.fieldHint">Public message — verifiers will need the same bytes</span>
+      </label>
+      <input type="text" id="input" value="hello libvrf" autocomplete="off" />
+      <button class="btn run" id="runBtn" type="button" data-i18n="demo.runBtn">Generate &amp; verify proof</button>
+      <div class="run-log-panel">
+        <h3><span data-i18n="demo.logTitle">Run log</span> <span class="hint" data-i18n="demo.logHint">— what each step is doing</span></h3>
+        <div id="runLog" class="run-log" aria-live="polite">
+          <p class="log-placeholder" data-i18n="demo.logPlaceholder">Press the button above. Lines appear here as the VRF runs.</p>
+        </div>
       </div>
-      <span class="pipe-arrow" aria-hidden="true">→</span>
-      <div class="pipe-step pipe-verify">
-        <span class="pipe-title">verify()</span>
-        <span class="pipe-sub">uses PK — anyone</span>
+      <ol class="steps" id="steps">
+        <li data-step="sk" class="step" data-i18n="demo.stepSk">Generate secret key (SK)</li>
+        <li data-step="pk" class="step" data-i18n="demo.stepPk">Derive public key (PK)</li>
+        <li data-step="prove" class="step" data-i18n="demo.stepProve">Prove: π ← prove(SK, α)</li>
+        <li data-step="verify" class="step" data-i18n="demo.stepVerify">Verify: (ok, β) ← verify(PK, α, π)</li>
+      </ol>
+      <h3 class="details-heading hidden" id="detailsHeading" data-i18n="demo.detailsHeading">Detailed output — each artifact explained</h3>
+      <div id="results" class="results hidden" aria-live="polite">
+        <div class="result-block" id="block-sk">
+          <h4 data-i18n="demo.resSkTitle">Secret key (SK)</h4>
+          <p class="result-desc" data-i18n="demo.resSkDesc"></p>
+          <dl class="result-dl">
+            <dt data-i18n="demo.dtStatus">Status</dt><dd id="out-sk-status">—</dd>
+            <dt data-i18n="demo.dtPrivate">Private scalar</dt><dd id="out-sk-bytes" class="mono truncate">—</dd>
+          </dl>
+        </div>
+        <div class="result-block" id="block-pk">
+          <h4 data-i18n="demo.resPkTitle">Public key (PK)</h4>
+          <p class="result-desc" data-i18n="demo.resPkDesc"></p>
+          <dl class="result-dl">
+            <dt data-i18n="demo.dtSpki">SPKI size</dt><dd id="out-pk-size">—</dd>
+            <dt data-i18n="demo.dtFirstHex">First bytes (hex)</dt><dd id="out-pk-hex" class="mono truncate">—</dd>
+          </dl>
+        </div>
+        <div class="result-block" id="block-alpha">
+          <h4 data-i18n="demo.resAlphaTitle">Input α</h4>
+          <p class="result-desc" data-i18n="demo.resAlphaDesc"></p>
+          <dl class="result-dl">
+            <dt data-i18n="demo.dtUtf8">UTF-8 length</dt><dd id="out-alpha-len">—</dd>
+            <dt data-i18n="demo.dtHex">Hex</dt><dd id="out-alpha-hex" class="mono truncate">—</dd>
+          </dl>
+        </div>
+        <div class="result-block" id="block-proof">
+          <h4 data-i18n="demo.resProofTitle">Proof π</h4>
+          <p class="result-desc" data-i18n="demo.resProofDesc"></p>
+          <dl class="result-dl">
+            <dt data-i18n="demo.dtSize">Size</dt><dd id="out-proof-size">—</dd>
+            <dt data-i18n="demo.dtProveTime">Prove time</dt><dd id="out-prove-ms">—</dd>
+            <dt data-i18n="demo.dtFirstHex">First bytes (hex)</dt><dd id="out-proof-hex" class="mono truncate">—</dd>
+          </dl>
+        </div>
+        <div class="result-block result-block-highlight" id="block-beta">
+          <h4 data-i18n="demo.resBetaTitle">VRF output β</h4>
+          <p class="result-desc" data-i18n="demo.resBetaDesc"></p>
+          <dl class="result-dl">
+            <dt data-i18n="demo.dtVerified">Verified?</dt><dd id="out-verify-ok">—</dd>
+            <dt data-i18n="demo.dtVerifyTime">Verify time</dt><dd id="out-verify-ms">—</dd>
+            <dt data-i18n="demo.dtBetaHex">β (hex)</dt><dd id="out-beta-hex" class="mono">—</dd>
+          </dl>
+        </div>
       </div>
-      <span class="pipe-arrow" aria-hidden="true">→</span>
-      <div class="pipe-step pipe-output">
-        <span class="pipe-title">Output β</span>
-        <span class="pipe-sub">VRF value (hash)</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="demo-section">
-    <h2>Glossary — what is what?</h2>
-    <div class="glossary">
-      <article class="glossary-card">
-        <h3>Secret key (SK)</h3>
-        <p>
-          Private material generated in your browser. It never leaves this page unless you export it.
-          <strong>Who can use it:</strong> only the prover — to call <code>getVRFProofAsync</code>.
-        </p>
-      </article>
-      <article class="glossary-card">
-        <h3>Public key (PK)</h3>
-        <p>
-          Derived from SK. Safe to publish. Identifies which prover family you trust.
-          <strong>Who can use it:</strong> verifiers — to call <code>verifyVRFProofAsync</code>.
-        </p>
-      </article>
-      <article class="glossary-card">
-        <h3>Input α</h3>
-        <p>
-          Any byte string (here, text you type). Same α + same SK always yields the same β and π.
-          Different α → different unpredictable β.
-        </p>
-      </article>
-      <article class="glossary-card">
-        <h3>Proof π</h3>
-        <p>
-          Evidence that β was computed correctly from α under PK.
-          Send π to a verifier along with α; they do not need SK.
-        </p>
-      </article>
-      <article class="glossary-card">
-        <h3>VRF output β</h3>
-        <p>
-          The pseudorandom value returned after successful verification (from <code>getVRFValue()</code> on the proof).
-          Behaves like a random oracle to outsiders who have not seen π.
-        </p>
-      </article>
-      <article class="glossary-card glossary-warn">
-        <h3>This EC suite vs RFC 9381</h3>
-        <p>
-          This demo uses a <strong>simplified</strong> EC construction for browsers.
-          Wire format and β differ from Microsoft libvrf / RFC 9381 ECVRF.
-          RSA-FDH/PSS in the npm package <em>are</em> RFC 9381 aligned (Node only).
-        </p>
-      </article>
-    </div>
-  </section>
-
-  <section class="demo-section demo-run">
-    <h2>Try it</h2>
-    <p class="lead">
-      Each click generates a <em>new</em> random SK (fresh key pair). In production you would reuse one SK for many inputs.
-    </p>
-
-    <label class="field-label" for="input">
-      <span class="field-name">Input α</span>
-      <span class="field-hint">Public message — verifiers will need the same bytes</span>
-    </label>
-    <input type="text" id="input" value="hello libvrf" autocomplete="off" />
-
-    <button class="btn run" id="runBtn" type="button">Generate &amp; verify proof</button>
-
-    <div class="run-log-panel">
-      <h3>Run log <span class="hint">— what each step is doing</span></h3>
-      <div id="runLog" class="run-log" aria-live="polite">
-        <p class="log-placeholder">Press the button above. Lines appear here as the VRF runs.</p>
-      </div>
-    </div>
-
-    <ol class="steps" id="steps">
-      <li data-step="sk" class="step">Generate secret key (SK)</li>
-      <li data-step="pk" class="step">Derive public key (PK)</li>
-      <li data-step="prove" class="step">Prove: π ← prove(SK, α)</li>
-      <li data-step="verify" class="step">Verify: (ok, β) ← verify(PK, α, π)</li>
-    </ol>
-
-    <h3 class="details-heading hidden" id="detailsHeading">Detailed output — each artifact explained</h3>
-    <div id="results" class="results hidden" aria-live="polite">
-      <div class="result-block" id="block-sk">
-        <h4>Secret key (SK)</h4>
-        <p class="result-desc">Ephemeral P-256 private key — proves you know SK by producing π.</p>
-        <dl class="result-dl">
-          <dt>Status</dt><dd id="out-sk-status">—</dd>
-          <dt>Private scalar</dt><dd id="out-sk-bytes" class="mono truncate">—</dd>
-        </dl>
-      </div>
-
-      <div class="result-block" id="block-pk">
-        <h4>Public key (PK)</h4>
-        <p class="result-desc">Compressed EC point — share this so others can verify your proofs.</p>
-        <dl class="result-dl">
-          <dt>SPKI size</dt><dd id="out-pk-size">—</dd>
-          <dt>First bytes (hex)</dt><dd id="out-pk-hex" class="mono truncate">—</dd>
-        </dl>
-      </div>
-
-      <div class="result-block" id="block-alpha">
-        <h4>Input α</h4>
-        <p class="result-desc">The challenge everyone agrees on — changing one character changes β.</p>
-        <dl class="result-dl">
-          <dt>UTF-8 length</dt><dd id="out-alpha-len">—</dd>
-          <dt>Hex</dt><dd id="out-alpha-hex" class="mono truncate">—</dd>
-        </dl>
-      </div>
-
-      <div class="result-block" id="block-proof">
-        <h4>Proof π</h4>
-        <p class="result-desc">Serialized proof bytes — attach to α when sending to a verifier.</p>
-        <dl class="result-dl">
-          <dt>Size</dt><dd id="out-proof-size">—</dd>
-          <dt>Prove time</dt><dd id="out-prove-ms">—</dd>
-          <dt>First bytes (hex)</dt><dd id="out-proof-hex" class="mono truncate">—</dd>
-        </dl>
-      </div>
-
-      <div class="result-block result-block-highlight" id="block-beta">
-        <h4>VRF output β</h4>
-        <p class="result-desc">
-          Returned only if verification succeeds. Use β as lottery seed, leader election hash, etc.
-        </p>
-        <dl class="result-dl">
-          <dt>Verified?</dt><dd id="out-verify-ok">—</dd>
-          <dt>Verify time</dt><dd id="out-verify-ms">—</dd>
-          <dt>β (hex)</dt><dd id="out-beta-hex" class="mono">—</dd>
-        </dl>
-      </div>
-    </div>
-
-    <div class="card error-card hidden" id="errorBox" role="alert"></div>
-  </section>
+      <div class="card error-card hidden" id="errorBox" role="alert"></div>
+    </section>
   </div>
 
   <script src="assets/libvrf.min.js"></script>
-  <script src="js/demo.js"></script>
+  <script src="js/demo.js" defer></script>
 </body>
 </html>

@@ -3,22 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>libvrf — Verifiable Random Functions for JavaScript</title>
-  <meta name="description" content="RFC 9381 RSA-FDH/PSS VRF for Node.js; EC VRF for browsers. TypeScript port of Microsoft libvrf.">
+  <title>libvrf</title>
+  <meta name="description" content="">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/i18n.js" defer></script>
 </head>
 <body>
   <header class="site-top">
     <div class="site-top-inner">
       <a class="logo" href="index.html">lib<span>vrf</span></a>
       <nav class="top-nav">
-        <a href="#concept">What is a VRF?</a>
-        <a href="#uses">Applications</a>
-        <a href="#library">Library</a>
-        <a href="#quickstart">Quick start</a>
-        <a href="demo.html">Live demo</a>
-        <a href="https://github.com/jose-compu/libvrf-js">GitHub</a>
+        <a href="#concept" data-i18n="nav.concept">What is a VRF?</a>
+        <a href="#uses" data-i18n="nav.uses">Applications</a>
+        <a href="#library" data-i18n="nav.library">Library</a>
+        <a href="#quickstart" data-i18n="nav.quickstart">Quick start</a>
+        <a href="demo.html" data-i18n="nav.demo">Live demo</a>
+        <a href="https://github.com/jose-compu/libvrf-js" data-i18n="nav.github">GitHub</a>
       </nav>
+      <select id="langSelect" class="lang-select" aria-label="Language">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="ja">日本語</option>
+      </select>
       <a class="btn-npm" href="https://www.npmjs.com/package/libvrf">npm install</a>
     </div>
   </header>
@@ -26,13 +33,9 @@
   <main class="wrap">
     <section class="hero" id="top">
       <div>
-        <p class="section-label">Verifiable randomness</p>
-        <h1>Random you can prove.<br>Verification anyone can run.</h1>
-        <p class="lead">
-          A <strong>Verifiable Random Function</strong> maps a secret key and public input α to a
-          unique output β and a proof π. Only the key holder produces π; anyone with the public key
-          verifies it—in milliseconds.
-        </p>
+        <p class="section-label" data-i18n="hero.label">Verifiable randomness</p>
+        <h1 data-i18n-html="hero.title">Random you can prove.<br>Verification anyone can run.</h1>
+        <p class="lead" data-i18n-html="hero.lead"></p>
         <div class="hero-badges">
           <a href="https://www.npmjs.com/package/libvrf"><img src="https://img.shields.io/npm/v/libvrf.svg" alt="npm"></a>
           <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT">
@@ -40,38 +43,38 @@
           <a href="https://github.com/jose-compu/libvrf-js/actions"><img src="https://github.com/jose-compu/libvrf-js/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
         </div>
         <div class="hero-cta">
-          <a class="btn" href="#quickstart">Get started</a>
-          <a class="btn btn-outline" href="demo.html">Live demo</a>
+          <a class="btn" href="#quickstart" data-i18n="hero.ctaStart">Get started</a>
+          <a class="btn btn-outline" href="demo.html" data-i18n="hero.ctaDemo">Live demo</a>
         </div>
       </div>
 
       <div class="diagram-card">
-        <h3>VRF evaluation pipeline</h3>
-        <p class="diagram-sub">One input α → proof π → verified output β</p>
+        <h3 data-i18n="pipeline.title">VRF evaluation pipeline</h3>
+        <p class="diagram-sub" data-i18n="pipeline.sub">One input α → proof π → verified output β</p>
         <div class="pipeline" aria-hidden="true">
           <div class="pipe-step pipe-input">
-            <span class="pipe-title">Input α</span>
-            <span class="pipe-sub">public message</span>
+            <span class="pipe-title" data-i18n="pipeline.inputTitle">Input α</span>
+            <span class="pipe-sub" data-i18n="pipeline.inputSub">public message</span>
           </div>
           <span class="pipe-arrow">→</span>
           <div class="pipe-step pipe-secret">
-            <span class="pipe-title">prove()</span>
-            <span class="pipe-sub">needs SK</span>
+            <span class="pipe-title" data-i18n="pipeline.proveTitle">prove()</span>
+            <span class="pipe-sub" data-i18n="pipeline.proveSub">needs SK</span>
           </div>
           <span class="pipe-arrow">→</span>
           <div class="pipe-step pipe-proof">
-            <span class="pipe-title">Proof π</span>
-            <span class="pipe-sub">send to verifiers</span>
+            <span class="pipe-title" data-i18n="pipeline.proofTitle">Proof π</span>
+            <span class="pipe-sub" data-i18n="pipeline.proofSub">send to verifiers</span>
           </div>
           <span class="pipe-arrow">→</span>
           <div class="pipe-step pipe-verify">
-            <span class="pipe-title">verify()</span>
-            <span class="pipe-sub">uses PK</span>
+            <span class="pipe-title" data-i18n="pipeline.verifyTitle">verify()</span>
+            <span class="pipe-sub" data-i18n="pipeline.verifySub">uses PK</span>
           </div>
           <span class="pipe-arrow">→</span>
           <div class="pipe-step pipe-output">
-            <span class="pipe-title">Output β</span>
-            <span class="pipe-sub">VRF value</span>
+            <span class="pipe-title" data-i18n="pipeline.outputTitle">Output β</span>
+            <span class="pipe-sub" data-i18n="pipeline.outputSub">VRF value</span>
           </div>
         </div>
         <div class="compare-bar" aria-hidden="true">
@@ -79,124 +82,110 @@
           <span class="bar-verify"></span>
         </div>
         <div class="compare-labels">
-          <span>prove (holder of SK)</span>
-          <span>verify (anyone with PK)</span>
+          <span data-i18n="pipeline.compareProve">prove (holder of SK)</span>
+          <span data-i18n="pipeline.compareVerify">verify (anyone with PK)</span>
         </div>
       </div>
     </section>
 
     <section id="concept">
-      <p class="section-label">Concept</p>
-      <h2>What is a Verifiable Random Function?</h2>
-      <p class="lead">
-        A VRF is a function <em>β = f<sub>SK</sub>(α)</em> where only someone who knows the
-        <strong>secret key SK</strong> can compute β and a <strong>proof π</strong>. Anyone with the
-        <strong>public key PK</strong> can check π quickly and recover the same β.
-      </p>
+      <p class="section-label" data-i18n="concept.label">Concept</p>
+      <h2 data-i18n="concept.title">What is a Verifiable Random Function?</h2>
+      <p class="lead" data-i18n-html="concept.lead"></p>
 
       <div class="cards-3">
         <article class="feature-card">
           <div class="icon icon-orange">🔑</div>
-          <h3>Unique &amp; pseudorandom</h3>
-          <p>β looks random to anyone without π. Same (SK, α) always gives the same β—useful for deterministic lotteries and leader election.</p>
+          <h3 data-i18n="concept.card1Title">Unique &amp; pseudorandom</h3>
+          <p data-i18n="concept.card1Text"></p>
         </article>
         <article class="feature-card">
           <div class="icon icon-purple">📄</div>
-          <h3>Compact proof π</h3>
-          <p>The prover sends π with α. Verifiers do not need SK and do not redo the expensive derivation.</p>
+          <h3 data-i18n="concept.card2Title">Compact proof π</h3>
+          <p data-i18n="concept.card2Text"></p>
         </article>
         <article class="feature-card">
           <div class="icon icon-green">✓</div>
-          <h3>Public verify</h3>
-          <p>Validators, contracts, or clients confirm correctness with PK only—no trust in the prover’s hardware.</p>
+          <h3 data-i18n="concept.card3Title">Public verify</h3>
+          <p data-i18n="concept.card3Text"></p>
         </article>
       </div>
 
       <div class="grid-2" style="margin-top: 1.5rem;">
         <div class="info-card">
-          <h3>Who holds what?</h3>
-          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">
-            <strong style="color: var(--text);">Prover</strong> — SK, runs <code>getVRFProof</code><br>
-            <strong style="color: var(--text);">Verifier</strong> — PK, runs <code>verifyVRFProof</code><br>
-            <strong style="color: var(--text);">Everyone</strong> — agrees on input α
-          </p>
+          <h3 data-i18n="concept.whoTitle">Who holds what?</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;" data-i18n-html="concept.whoHtml"></p>
         </div>
         <div class="info-card">
-          <h3>RFC 9381 vs this port</h3>
-          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">
-            <span class="pill pill-ok">RFC 9381</span> RSA-FDH &amp; RSA-PSS-NOSALT (Microsoft libvrf interop)<br><br>
-            <span class="pill pill-warn">Simplified</span> EC P-256 in browsers — not RFC wire-compatible
-          </p>
+          <h3 data-i18n="concept.rfcTitle">RFC 9381 vs this port</h3>
+          <p style="color: var(--muted); font-size: 0.9rem; margin: 0;" data-i18n-html="concept.rfcHtml"></p>
         </div>
       </div>
     </section>
 
     <section id="uses">
-      <p class="section-label">Use cases</p>
-      <h2>Where VRFs are used</h2>
-      <p class="lead">Protocols need unpredictable, agreed-upon randomness with evidence that nobody cheated.</p>
+      <p class="section-label" data-i18n="uses.label">Use cases</p>
+      <h2 data-i18n="uses.title">Where VRFs are used</h2>
+      <p class="lead" data-i18n="uses.lead"></p>
 
       <div class="diagram-card">
-        <h3>Leader election (simplified)</h3>
-        <p class="diagram-sub">VRF output β picks a proposer; π proves the draw was fair</p>
+        <h3 data-i18n="uses.flowTitle">Leader election (simplified)</h3>
+        <p class="diagram-sub" data-i18n="uses.flowSub"></p>
         <div class="usecase-flow">
-          <div class="flow-box flow-a">Round α<small>slot / block hash</small></div>
+          <div class="flow-box flow-a"><span data-i18n="uses.flowA">Round α</span><small data-i18n="uses.flowASmall">slot / block hash</small></div>
           <span class="pipe-arrow">→</span>
-          <div class="flow-box flow-b">prove(SK, α)<small>each candidate</small></div>
+          <div class="flow-box flow-b"><span data-i18n="uses.flowB">prove(SK, α)</span><small data-i18n="uses.flowBSmall">each candidate</small></div>
           <span class="pipe-arrow">→</span>
-          <div class="flow-box flow-c">Proof π</div>
+          <div class="flow-box flow-c" data-i18n="uses.flowC">Proof π</div>
           <span class="pipe-arrow">→</span>
-          <div class="flow-box flow-d">verify(PK)<small>network</small></div>
+          <div class="flow-box flow-d"><span data-i18n="uses.flowD">verify(PK)</span><small data-i18n="uses.flowDSmall">network</small></div>
           <span class="pipe-arrow">→</span>
-          <div class="flow-box flow-e">Lowest β wins<small>public random</small></div>
+          <div class="flow-box flow-e"><span data-i18n="uses.flowE">Lowest β wins</span><small data-i18n="uses.flowESmall">public random</small></div>
         </div>
       </div>
 
       <div class="cards-3" style="margin-top: 1.25rem;">
         <article class="feature-card">
-          <h3>DNSSEC &amp; naming</h3>
-          <p>Prove deterministic responses tied to zone keys (RSA suites in this library match RFC 9381).</p>
+          <h3 data-i18n="uses.uc1Title">DNSSEC &amp; naming</h3>
+          <p data-i18n="uses.uc1Text"></p>
         </article>
         <article class="feature-card">
-          <h3>Randomness beacons</h3>
-          <p>Combine VRF outputs across rounds for public randomness with audit trails.</p>
+          <h3 data-i18n="uses.uc2Title">Randomness beacons</h3>
+          <p data-i18n="uses.uc2Text"></p>
         </article>
         <article class="feature-card">
-          <h3>Lotteries &amp; games</h3>
-          <p>Commit to α, reveal β with π so players can verify the draw was not rigged.</p>
+          <h3 data-i18n="uses.uc3Title">Lotteries &amp; games</h3>
+          <p data-i18n="uses.uc3Text"></p>
         </article>
       </div>
     </section>
 
     <section id="library">
-      <p class="section-label">libvrf</p>
-      <h2>This library</h2>
-      <p class="lead">TypeScript port of <a href="https://github.com/Microsoft/libvrf">Microsoft libvrf</a> — RSA in Node.js, EC in browsers via WebCrypto.</p>
+      <p class="section-label" data-i18n="library.label">libvrf</p>
+      <h2 data-i18n="library.title">This library</h2>
+      <p class="lead" data-i18n-html="library.lead"></p>
 
       <div class="lib-cards">
         <article class="feature-card lib-card">
-          <h3>RSA-FDH</h3>
-          <p>RFC 9381 full-domain hash. 2048–4096 bit keys, SHA-256/384/512. Cross-tested vs C++ vectors.</p>
+          <h3 data-i18n="library.rsaFdhTitle">RSA-FDH</h3>
+          <p data-i18n="library.rsaFdhText"></p>
         </article>
         <article class="feature-card lib-card">
-          <h3>RSA-PSS-NOSALT</h3>
-          <p>RFC 9381 PSS variant without salt. Same key sizes; interop with libvrf wire format.</p>
+          <h3 data-i18n="library.rsaPssTitle">RSA-PSS-NOSALT</h3>
+          <p data-i18n="library.rsaPssText"></p>
         </article>
         <article class="feature-card lib-card">
-          <h3>EC P-256 (browser)</h3>
-          <p>Simplified EC VRF for demos &amp; apps. Use async APIs; not RFC ECVRF wire format.</p>
+          <h3 data-i18n="library.ecTitle">EC P-256 (browser)</h3>
+          <p data-i18n="library.ecText"></p>
         </article>
       </div>
 
-      <div class="callout">
-        <strong>Production:</strong> Prefer RSA suites on Node for RFC 9381 interop. Use the
-        <a href="demo.html">live demo</a> to learn SK / PK / π / β, then deploy RSA in your backend.
-      </div>
+      <div class="callout" data-i18n-html="library.callout"></div>
     </section>
 
     <section id="quickstart">
-      <p class="section-label">Developers</p>
-      <h2>Quick start</h2>
+      <p class="section-label" data-i18n="quickstart.label">Developers</p>
+      <h2 data-i18n="quickstart.title">Quick start</h2>
       <pre><code>npm install libvrf</code></pre>
       <pre><code>import { VRF, VRFType } from 'libvrf';
 
@@ -209,15 +198,15 @@ const [ok, beta] = pk.verifyVRFProof(alpha, proof);
 console.log(ok, Buffer.from(beta).toString('hex'));</code></pre>
 
       <div class="link-row">
-        <a class="link-pill primary" href="demo.html">Live demo (EC in browser)</a>
-        <a class="link-pill" href="https://github.com/jose-compu/libvrf-js">GitHub</a>
-        <a class="link-pill" href="https://www.npmjs.com/package/libvrf">npm</a>
-        <a class="link-pill" href="https://datatracker.ietf.org/doc/rfc9381/">RFC 9381</a>
+        <a class="link-pill primary" href="demo.html" data-i18n="quickstart.linkDemo">Live demo (EC in browser)</a>
+        <a class="link-pill" href="https://github.com/jose-compu/libvrf-js" data-i18n="quickstart.linkGithub">GitHub</a>
+        <a class="link-pill" href="https://www.npmjs.com/package/libvrf" data-i18n="quickstart.linkNpm">npm</a>
+        <a class="link-pill" href="https://datatracker.ietf.org/doc/rfc9381/" data-i18n="quickstart.linkRfc">RFC 9381</a>
       </div>
     </section>
 
     <footer>
-      <p>MIT · <a href="https://github.com/jose-compu/libvrf-js">libvrf-js</a> · Port of <a href="https://github.com/Microsoft/libvrf">Microsoft libvrf</a></p>
+      <p data-i18n-html="footer.text"></p>
     </footer>
   </main>
 </body>

@@ -5,6 +5,12 @@ const runLogEl = document.getElementById('runLog');
 const errorBox = document.getElementById('errorBox');
 const steps = document.querySelectorAll('.step');
 
+function tr(key, vars = {}) {
+  const full = `demoRun.${key}`;
+  if (window.libvrfI18n?.t) return window.libvrfI18n.t(full, vars);
+  return full;
+}
+
 function hex(bytes, max = 48) {
   const h = Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, '0'))
@@ -32,7 +38,6 @@ function clearRunLog() {
   runLogEl.innerHTML = '';
 }
 
-/** Terminal-style line + plain-English meaning (what you asked for). */
 function logStep(line, meaning, extra) {
   const entry = document.createElement('div');
   entry.className = 'log-entry';
@@ -47,7 +52,7 @@ function logStep(line, meaning, extra) {
 function showError(msg) {
   errorBox.textContent = msg;
   errorBox.classList.remove('hidden');
-  logStep('✗ Error', msg);
+  logStep(tr('error'), msg);
 }
 
 function hideError() {
@@ -64,9 +69,7 @@ btn.addEventListener('click', async () => {
 
   try {
     if (!globalThis.libvrf?.VRF) {
-      throw new Error(
-        'libvrf bundle not found. Build the site with: npm run website:build'
-      );
+      throw new Error(tr('bundleMissing'));
     }
 
     const { VRF, VRFType } = libvrf;
@@ -75,92 +78,80 @@ btn.addEventListener('click', async () => {
     const alpha = new TextEncoder().encode(inputText);
 
     logStep(
-      `Input α = "${inputText}"`,
-      '<strong>Input α</strong> — public challenge. Everyone must use the same bytes to verify. Not secret.',
-      `${alpha.length} bytes · hex ${hex(alpha)}`
+      tr('inputLine', { text: inputText }),
+      tr('inputMean'),
+      tr('bytesHex', { len: alpha.length, hex: hex(alpha) })
     );
 
     setText('out-alpha-len', `${alpha.length} bytes`);
     setText('out-alpha-hex', hex(alpha));
 
     setStep('sk', 'active');
-    logStep(
-      'Creating secret key…',
-      '<strong>Secret key (SK)</strong> — private P-256 key. Only the prover holds this. Used in <code>getVRFProofAsync</code>.'
-    );
+    logStep(tr('creatingSk'), tr('creatingSkMean'));
     const sk = await VRF.createAsync(type);
     if (!sk?.isInitialized?.()) {
-      throw new Error('Secret key (SK) failed to initialize');
+      throw new Error(tr('skFail'));
     }
     const skBytes = sk.toBytes?.() ?? new Uint8Array(0);
-    setText('out-sk-status', 'Generated (new key this run)');
-    setText('out-sk-bytes', skBytes.length ? hex(skBytes, 64) : '(held inside library)');
+    setText('out-sk-status', tr('skStatus'));
+    setText('out-sk-bytes', skBytes.length ? hex(skBytes, 64) : tr('skInternal'));
     setStep('sk', 'done');
 
     setStep('pk', 'active');
     logStep(
-      'Deriving public key…',
-      '<strong>Public key (PK)</strong> — derived from SK. Safe to publish. Verifiers need PK, not SK.',
-      skBytes.length ? `SK preview: ${hex(skBytes, 32)}` : undefined
+      tr('derivingPk'),
+      tr('derivingPkMean'),
+      skBytes.length ? tr('skPreview', { hex: hex(skBytes, 32) }) : undefined
     );
     const pk = await sk.getPublicKeyAsync();
     if (!pk?.isInitialized?.()) {
-      throw new Error('Public key (PK) derivation failed');
+      throw new Error(tr('pkFail'));
     }
     const pkBytes = pk.toBytes();
-    setText('out-pk-size', `${pkBytes.length} bytes (DER SPKI)`);
+    setText('out-pk-size', tr('pkSize', { len: pkBytes.length }));
     setText('out-pk-hex', hex(pkBytes));
     setStep('pk', 'done');
 
     setStep('prove', 'active');
-    logStep(
-      'Proving…',
-      '<strong>Proof π</strong> — computed with SK + α. Proves “I know a valid β for this input” without revealing SK.'
-    );
+    logStep(tr('proving'), tr('provingMean'));
     const t0 = performance.now();
     const proof = await sk.getVRFProofAsync(alpha);
     const proveMs = (performance.now() - t0).toFixed(1);
     if (!proof?.isInitialized?.()) {
-      throw new Error('Proof π generation failed');
+      throw new Error(tr('proofFail'));
     }
     const proofBytes = proof.toBytes();
-    setText('out-proof-size', `${proofBytes.length} bytes`);
-    setText('out-prove-ms', `${proveMs} ms`);
+    setText('out-proof-size', tr('proofSize', { len: proofBytes.length }));
+    setText('out-prove-ms', tr('proveMs', { ms: proveMs }));
     setText('out-proof-hex', hex(proofBytes));
     setStep('prove', 'done');
 
     setStep('verify', 'active');
-    logStep(
-      'Verifying…',
-      '<strong>Verify</strong> — checks π against PK and α. No secret key needed. Returns success + VRF output β.'
-    );
+    logStep(tr('verifying'), tr('verifyingMean'));
     const t1 = performance.now();
     const [ok, beta] = await pk.verifyVRFProofAsync(alpha, proof);
     const verifyMs = (performance.now() - t1).toFixed(1);
     if (!ok) {
-      throw new Error('Verification failed — π does not match α under this PK');
+      throw new Error(tr('verifyFail'));
     }
-    setText('out-verify-ok', 'Yes — π is valid for this α');
-    setText('out-verify-ms', `${verifyMs} ms`);
+    setText('out-verify-ok', tr('verifyOk'));
+    setText('out-verify-ms', tr('proveMs', { ms: verifyMs }));
     setText('out-beta-hex', hex(beta, 128));
     setStep('verify', 'done');
 
+    logStep(tr('verified'), tr('verifiedMean'));
     logStep(
-      '✓ Proof verified',
-      '<strong>Success</strong> — π is valid. The verifier accepts that β was produced correctly from α under PK.'
+      tr('timingLine', { prove: proveMs, verify: verifyMs }),
+      tr('timingMean')
     );
     logStep(
-      `Prove: ${proveMs} ms · Verify: ${verifyMs} ms`,
-      '<strong>Timing</strong> — prove needs SK (slower crypto); verify only checks π (usually faster).'
+      tr('proofSizeLine', { len: proofBytes.length }),
+      tr('proofSizeMean')
     );
     logStep(
-      `Proof size: ${proofBytes.length} bytes`,
-      '<strong>Proof π (size)</strong> — wire bytes you would send to a verifier alongside α.'
-    );
-    logStep(
-      `VRF value β: ${hex(beta, 64)}`,
-      '<strong>VRF output β</strong> — deterministic pseudorandom hash for this (SK, α). Same inputs → same β. Use as seed / lottery / leader election.',
-      `Full β (${beta.length} bytes): ${hex(beta, 128)}`
+      tr('betaLine', { hex: hex(beta, 64) }),
+      tr('betaMean'),
+      tr('betaFull', { len: beta.length, hex: hex(beta, 128) })
     );
 
     resultsEl.classList.remove('hidden');
