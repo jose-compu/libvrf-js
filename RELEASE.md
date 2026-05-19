@@ -61,6 +61,38 @@ npm whoami --registry https://registry.npmjs.org
 # must print: jose-blockchain
 ```
 
+### Publish from your Mac with `npm login` (no access tokens)
+
+npm asks for OTP on **every** `npm publish` when you use **web login** (`auth-type=web`). Use **legacy login** instead.
+
+**1. npm account — 2FA mode must be “Authorization only”**
+
+- https://www.npmjs.com/settings/profile  
+- Two-Factor Authentication → **Authorization only** (not “Authorization and publishing”)  
+- Or CLI: `npm profile enable-2fa auth-only`
+
+**2. Fresh login (legacy, not web)**
+
+```bash
+npm logout
+npm login --auth-type=legacy
+# OTP once here at login only
+npm whoami   # jose-blockchain
+```
+
+**3. Publish**
+
+```bash
+cd libvrf-js
+npm run build
+npm test
+npm publish --access public
+```
+
+No OTP at publish time if step 1–2 are correct. If you still get OTP, you are still on web auth — run `npm logout` and `npm login --auth-type=legacy` again (do not use browser login).
+
+Check 2FA mode: `npm profile get` → `two-factor auth: auth-only`
+
 ## Creating a Release
 
 ### Option 1: Using GitHub CLI (Recommended)
