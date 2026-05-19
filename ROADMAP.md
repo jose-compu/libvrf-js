@@ -119,9 +119,12 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 ## How to use this doc
 
 - Pick items by phase when planning milestones.
-- Open GitHub issues with labels matching tags (`crypto`, `interop`, etc.).
-- Mark done items with PR link in a short “Completed” section below when shipped.
+- GitHub issues: [#1–#43](https://github.com/jose-compu/libvrf-js/issues) (R1-01 = #1 … B-08 = #43). Re-run `./scripts/create-roadmap-issues.sh` only on a fresh repo (duplicates otherwise).
+- **Labels:** category (`crypto`, `interop`, `api`, …), phase (`roadmap-r1` … `roadmap-r4`, `backlog`), priority (`priority-p0` … `priority-p3`).
+- Mark done items with PR link in the Completed section below when shipped.
 
 ### Completed
 
-_(none yet — move items here with version and PR link when merged)_
+| Version | Items | Notes |
+|---------|--------|--------|
+| **v1.1.0** | R1-01 … R1-12 | Docs honesty, `VRFError` / `*OrThrow`, compliance API, RSA RFC vectors, fast CI matrix + `test:full`, browser smoke, coverage gate, Dependabot, `CHANGELOG.md`, secret-key serde, async/sync docs, benchmark script |

@@ -31,6 +31,44 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Run tests
-      run: npm test
+    - name: Run tests with coverage
+      run: npm run test:coverage
+
+  test-full-matrix:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js 20.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.x
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build
+      run: npm run build
+
+    - name: Run full VRF matrix (3072/4096 RSA)
+      run: npm run test:full
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js 20.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20.x
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build browser bundle
+      run: npm run build:browser
+
+    - name: Browser bundle smoke test
+      run: npm run test:browser-smoke
 

@@ -7,11 +7,16 @@
  * from a secret key and a given input, produces a unique pseudorandom output,
  * along with a proof that the output was correctly computed.
  * 
- * This library implements RSA-FDH VRF, RSA-PSS-NOSALT VRF, and EC VRF based on RFC 9381.
+ * RSA-FDH and RSA-PSS-NOSALT VRFs follow RFC 9381. EC VRF uses a simplified
+ * construction and is not RFC 9381 compliant (see README).
  */
 
 // Export main VRF class
 export { VRF } from './vrf';
+
+export { VRFError, VRFErrorCode } from './errors';
+export { isRFC9381Compliant, getVRFSuiteInfo } from './compliance';
+export type { VRFSuiteInfo } from './compliance';
 
 // Export base classes and interfaces
 export { 
