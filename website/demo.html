@@ -7,19 +7,28 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/demo.css">
 </head>
-<body class="demo-light">
-  <div class="wrap demo-page">
-    <header class="demo-header">
-      <p class="section-label">INTERACTIVE DEMO</p>
-      <h1>EC VRF in your browser</h1>
-      <p class="tagline">
-        This page runs <code>EC_VRF_P256_SHA256_TAI</code> with WebCrypto.
-        RSA suites need Node.js — see the <a href="index.html">home page</a>.
-      </p>
-      <nav class="site-nav">
-        <a href="index.html">← Home</a>
+<body>
+  <header class="site-top">
+    <div class="site-top-inner">
+      <a class="logo" href="index.html">lib<span>vrf</span></a>
+      <nav class="top-nav">
+        <a href="index.html">Home</a>
+        <a href="index.html#concept">What is a VRF?</a>
+        <a href="demo.html">Live demo</a>
         <a href="https://github.com/jose-compu/libvrf-js">GitHub</a>
       </nav>
+      <a class="btn-npm" href="https://www.npmjs.com/package/libvrf">npm install</a>
+    </div>
+  </header>
+
+  <div class="wrap demo-page">
+    <header class="demo-header">
+      <p class="section-label">Interactive demo</p>
+      <h1>EC VRF in your browser</h1>
+      <p class="lead">
+        Runs <code>EC_VRF_P256_SHA256_TAI</code> with WebCrypto.
+        RSA suites need Node.js — see the <a href="index.html">home page</a>.
+      </p>
     </header>
 
   <section class="demo-section">

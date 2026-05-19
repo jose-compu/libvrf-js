@@ -1,18 +1,13 @@
-/* Demo page — light didactic layout */
+/* Demo page — extends light style.css */
 
-body.demo-light {
-  --bg: #f4f7fb;
-  --surface: #ffffff;
-  --border: #d8e2ef;
-  --text: #1a2332;
-  --muted: #5a6b82;
-  --accent: #2563eb;
-  --accent-dim: #1d4ed8;
-  --ok: #16a34a;
-  --warn: #d97706;
-  --mono: 'SF Mono', 'Fira Code', Consolas, monospace;
-  background: linear-gradient(165deg, #eef4fc 0%, #f8fafc 45%, #fff 100%);
-  color: var(--text);
+.demo-page .demo-header {
+  padding: 1.5rem 0 0;
+  border: none;
+  margin-bottom: 0;
+}
+
+.demo-page h1 {
+  font-size: 1.75rem;
 }
 
 /* Run log (terminal-style + explanations) */
