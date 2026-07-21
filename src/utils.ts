@@ -12,7 +12,9 @@ export function isBrowser(): boolean {
 }
 
 /**
- * Convert hex string to Uint8Array
+ * Decode a hex string to bytes.
+ * @param hex - Even-length hex string (no `0x` prefix).
+ * @returns Byte array of length `hex.length / 2`.
  */
 export function hexToBytes(hex: string): Uint8Array {
   const bytes = new Uint8Array(hex.length / 2);
@@ -23,7 +25,9 @@ export function hexToBytes(hex: string): Uint8Array {
 }
 
 /**
- * Convert Uint8Array to hex string
+ * Encode bytes as a lowercase hex string.
+ * @param bytes - Input bytes.
+ * @returns Hex string of length `2 * bytes.length`.
  */
 export function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes)
@@ -32,7 +36,9 @@ export function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
- * Concatenate multiple Uint8Arrays
+ * Concatenate multiple byte arrays in order.
+ * @param arrays - Arrays to join.
+ * @returns New array whose length is the sum of input lengths.
  */
 export function concatBytes(...arrays: Uint8Array[]): Uint8Array {
   const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
@@ -46,7 +52,10 @@ export function concatBytes(...arrays: Uint8Array[]): Uint8Array {
 }
 
 /**
- * Compare two Uint8Arrays for equality
+ * Constant-time-ish equality (length check then byte walk; not hardened against timing).
+ * @param a - First buffer.
+ * @param b - Second buffer.
+ * @returns `true` iff lengths and contents match.
  */
 export function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;

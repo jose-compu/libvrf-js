@@ -15,11 +15,18 @@ import {
 } from './rfc9381';
 
 /**
- * RSA VRF Proof implementation
+ * RSA VRF proof π (RFC 9381 FDH / PSS-NOSALT).
+ *
+ * **Serialization:** length = modulus size in bytes (256 / 384 / 512).
+ * **β:** digest length for the suite (32 / 48 / 64).
  */
 export class RSAProof extends Proof {
   private proofBytes: Uint8Array = new Uint8Array(0);
 
+  /**
+   * @param type - Optional RSA suite.
+   * @param proof - Optional proof bytes (modulus-sized).
+   */
   constructor(type?: VRFType, proof?: Uint8Array) {
     super();
     if (type) {
@@ -34,6 +41,10 @@ export class RSAProof extends Proof {
     return this.proofBytes.length > 0 && isRSAType(this.getType());
   }
 
+  /**
+   * VRF output β = `Hash(proof_to_hash(...))` per suite params.
+   * @returns Digest-sized bytes, or empty if uninitialized.
+   */
   getVRFValue(): Uint8Array {
     if (!this.isInitialized()) {
       return new Uint8Array(0);
@@ -51,10 +62,17 @@ export class RSAProof extends Proof {
     return new RSAProof(this.getType(), this.proofBytes);
   }
 
+  /** Serialize π — modulus byte length (256 / 384 / 512). */
   toBytes(): Uint8Array {
     return new Uint8Array(this.proofBytes);
   }
 
+  /**
+   * Deserialize π.
+   * @param type - Must be an RSA suite.
+   * @param data - Non-empty proof bytes (typically modulus-sized).
+   * @returns `true` on success.
+   */
   fromBytes(type: VRFType, data: Uint8Array): boolean {
     if (!isRSAType(type)) {
       return false;
@@ -72,12 +90,20 @@ export class RSAProof extends Proof {
 }
 
 /**
- * RSA VRF Secret Key implementation
+ * RSA VRF secret key (Node.js). Generates a new key pair for the suite bit length
+ * unless an existing {@link NodeRSA} instance is supplied.
+ *
+ * **Serialization:** PKCS#8 DER via `toBytes()` / {@link fromBytes} (variable length).
+ * Treat as secret material. Not available in browsers.
  */
 export class RSASecretKey extends SecretKey {
   private rsaKey: NodeRSA | undefined = undefined;
   private mgf1Salt: Uint8Array = new Uint8Array(0);
 
+  /**
+   * @param type - RSA suite (sets bit length / digest).
+   * @param rsaKey - Optional existing NodeRSA private key.
+   */
   constructor(type?: VRFType, rsaKey?: NodeRSA) {
     super();
     if (type) {
@@ -106,6 +132,11 @@ export class RSASecretKey extends SecretKey {
            isRSAType(this.getType());
   }
 
+  /**
+   * Prove: produce π for public input α.
+   * @param input - Public input α (arbitrary length).
+   * @returns Proof (modulus-sized when serialized), or `null` on failure.
+   */
   getVRFProof(input: Uint8Array): Proof | null {
     if (!this.isInitialized() || !this.rsaKey) {
       return null;
@@ -134,6 +165,10 @@ export class RSASecretKey extends SecretKey {
     }
   }
 
+  /**
+   * Derive the corresponding RSA public key.
+   * @returns Public key, or `null` if not initialized.
+   */
   getPublicKey(): PublicKey | null {
     if (!this.isInitialized() || !this.rsaKey) {
       return null;
@@ -155,7 +190,7 @@ export class RSASecretKey extends SecretKey {
     return new RSASecretKey(this.getType(), clonedKey);
   }
 
-  /** PKCS#8 DER private key. Treat as secret material. */
+  /** PKCS#8 DER private key (variable length). Treat as secret material. */
   toBytes(): Uint8Array {
     if (!this.rsaKey) {
       return new Uint8Array(0);
@@ -163,7 +198,12 @@ export class RSASecretKey extends SecretKey {
     return new Uint8Array(this.rsaKey.exportKey('pkcs8-private-der'));
   }
 
-  /** Import from PKCS#8 DER private key bytes. */
+  /**
+   * Import from PKCS#8 DER private key bytes.
+   * @param type - RSA suite.
+   * @param data - Non-empty PKCS#8 DER.
+   * @returns Key, or `null` on failure.
+   */
   static fromBytes(type: VRFType, data: Uint8Array): RSASecretKey | null {
     if (!isRSAType(type) || data.length === 0) {
       return null;
@@ -204,12 +244,19 @@ export class RSASecretKey extends SecretKey {
 }
 
 /**
- * RSA VRF Public Key implementation
+ * RSA VRF public key (Node.js).
+ *
+ * **Serialization:** SPKI DER (`pkcs8-public-der`), variable length.
  */
 export class RSAPublicKey extends PublicKey {
   private rsaKey: NodeRSA | undefined = undefined;
   private mgf1Salt: Uint8Array = new Uint8Array(0);
 
+  /**
+   * @param type - Optional RSA suite.
+   * @param rsaKey - Optional NodeRSA key (public or private).
+   * @param mgf1Salt - Optional MGF1 salt; derived from modulus if omitted.
+   */
   constructor(type?: VRFType, rsaKey?: NodeRSA, mgf1Salt?: Uint8Array) {
     super();
     if (type) {
@@ -229,6 +276,12 @@ export class RSAPublicKey extends PublicKey {
            isRSAType(this.getType());
   }
 
+  /**
+   * Verify π for α.
+   * @param input - Public input α.
+   * @param proof - Proof whose length matches the modulus size.
+   * @returns `[ok, beta]` — `beta` is digest-sized on success.
+   */
   verifyVRFProof(input: Uint8Array, proof: Proof): [boolean, Uint8Array] {
     if (!this.isInitialized() || !proof.isInitialized()) {
       return [false, new Uint8Array(0)];
@@ -277,6 +330,7 @@ export class RSAPublicKey extends PublicKey {
     return new RSAPublicKey(this.getType(), clonedKey, this.mgf1Salt);
   }
 
+  /** Serialize PK as SPKI DER (variable length). */
   toBytes(): Uint8Array {
     if (!this.rsaKey) {
       return new Uint8Array(0);
@@ -287,6 +341,12 @@ export class RSAPublicKey extends PublicKey {
     return new Uint8Array(exported);
   }
 
+  /**
+   * Deserialize PK from SPKI DER.
+   * @param type - Must be an RSA suite.
+   * @param data - Non-empty SPKI DER bytes.
+   * @returns `true` on success.
+   */
   fromBytes(type: VRFType, data: Uint8Array): boolean {
     if (!isRSAType(type)) {
       return false;

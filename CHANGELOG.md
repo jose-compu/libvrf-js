@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.1.1] - 2026-07-21
+
+### Added
+
+- JSDoc on public APIs with `@throws`, `@param`/`@returns`, and byte-length expectations (closes #37)
+
 ## [1.1.0] - 2026-05-19
 
 ### Added

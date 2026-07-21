@@ -8,11 +8,19 @@ import { ECDHInterface, createECDHAsync } from './ecdh-wrapper';
 import { createECDH } from 'crypto';
 
 /**
- * EC VRF Proof implementation
+ * EC VRF proof π (simplified P-256 suite).
+ *
+ * **Serialization:** `toBytes()` / `fromBytes()` expect **80** bytes (`fLen`).
+ * **β:** `getVRFValue()` / `getVRFValueAsync()` return **32** bytes (SHA-256),
+ * or empty if not initialized. Prefer `getVRFValueAsync()` in browsers.
  */
 export class ECProof extends Proof {
   private proofBytes: Uint8Array = new Uint8Array(0);
 
+  /**
+   * @param type - Optional EC suite (defaults unset until `fromBytes`).
+   * @param proof - Optional proof bytes (expected length 80 for P-256).
+   */
   constructor(type?: VRFType, proof?: Uint8Array) {
     super();
     if (type) {
@@ -27,6 +35,10 @@ export class ECProof extends Proof {
     return this.proofBytes.length > 0 && isECType(this.getType());
   }
 
+  /**
+   * VRF output β (sync). In browsers returns empty — use {@link getVRFValueAsync}.
+   * @returns 32-byte digest, or empty if uninitialized / browser sync path.
+   */
   getVRFValue(): Uint8Array {
     if (!this.isInitialized()) {
       return new Uint8Array(0);
@@ -57,6 +69,10 @@ export class ECProof extends Proof {
     return new Uint8Array(0);
   }
 
+  /**
+   * VRF output β (async; Node and browsers).
+   * @returns 32-byte digest, or empty if uninitialized.
+   */
   async getVRFValueAsync(): Promise<Uint8Array> {
     if (!this.isInitialized()) {
       return new Uint8Array(0);
@@ -81,10 +97,17 @@ export class ECProof extends Proof {
     return new ECProof(this.getType(), this.proofBytes);
   }
 
+  /** Serialize π — **80** bytes for P-256. */
   toBytes(): Uint8Array {
     return new Uint8Array(this.proofBytes);
   }
 
+  /**
+   * Deserialize π.
+   * @param type - Must be an EC suite.
+   * @param data - Non-empty proof bytes (typically 80 for P-256).
+   * @returns `true` on success.
+   */
   fromBytes(type: VRFType, data: Uint8Array): boolean {
     if (!isECType(type)) {
       return false;
@@ -102,14 +125,20 @@ export class ECProof extends Proof {
 }
 
 /**
- * EC VRF Secret Key implementation
- * Supports both Node.js (sync) and browsers (async)
+ * EC VRF secret key (P-256). Supports Node sync and browser async.
+ *
+ * **Serialization:** `toBytes()` returns the raw private scalar (**32** bytes).
+ * Treat as secret material. Prefer {@link VRF.createAsync} / {@link initializeAsync}
+ * in browsers.
  */
 export class ECSecretKey extends SecretKey {
   private ecdh: ECDHInterface | null = null;
   private privateKeyBytes: Uint8Array = new Uint8Array(0);
   private initialized: boolean = false;
 
+  /**
+   * @param type - Optional EC suite. Call {@link initializeAsync} (or sync init via {@link VRF}) before use.
+   */
   constructor(type?: VRFType) {
     super();
     if (type) {
@@ -118,8 +147,11 @@ export class ECSecretKey extends SecretKey {
   }
 
   /**
-   * Initialize the key (async - required for browsers)
-   * Call this after construction before using the key
+   * Initialize the key (async — required for browsers).
+   * Call after construction before proving or exporting.
+   *
+   * @param secretKey - Optional raw P-256 scalar (**32** bytes). If omitted, a new key is generated.
+   * @throws {Error} If WebCrypto / ECDH setup fails.
    */
   async initializeAsync(secretKey?: Uint8Array): Promise<void> {
     const params = getECVRFParams(this.getType());
@@ -190,7 +222,9 @@ export class ECSecretKey extends SecretKey {
   }
 
   /**
-   * Generate VRF proof (async - works in both Node.js and browsers)
+   * Generate VRF proof π (async — Node and browsers).
+   * @param input - Public input α (arbitrary length).
+   * @returns Proof (**80** bytes when serialized), or `null` on failure.
    */
   async getVRFProofAsync(input: Uint8Array): Promise<Proof | null> {
     if (!this.isInitialized() || !this.ecdh) {
@@ -235,8 +269,11 @@ export class ECSecretKey extends SecretKey {
   }
 
   /**
-   * Generate VRF proof (sync - Node.js only for backward compatibility)
-   * @deprecated Use getVRFProofAsync() for better browser compatibility
+   * Generate VRF proof π (sync — **Node.js only**).
+   * @deprecated Use {@link getVRFProofAsync} for browser compatibility.
+   * @param input - Public input α.
+   * @returns Proof, or `null` on failure.
+   * @throws {Error} If called in a browser.
    */
   getVRFProof(input: Uint8Array): Proof | null {
     if (isBrowser()) {
@@ -282,6 +319,10 @@ export class ECSecretKey extends SecretKey {
     }
   }
 
+  /**
+   * Derive PK (async). Serialized PK is a **33**-byte compressed point.
+   * @returns Public key, or `null` if not initialized.
+   */
   async getPublicKeyAsync(): Promise<PublicKey | null> {
     if (!this.isInitialized() || !this.ecdh) {
       return null;
@@ -292,8 +333,9 @@ export class ECSecretKey extends SecretKey {
   }
 
   /**
-   * Get public key (sync - Node.js only for backward compatibility)
-   * @deprecated Use getPublicKeyAsync() for better browser compatibility
+   * Derive PK (sync — **Node.js only**).
+   * @deprecated Use {@link getPublicKeyAsync}.
+   * @throws {Error} If called in a browser.
    */
   getPublicKey(): PublicKey | null {
     if (isBrowser()) {
@@ -308,6 +350,9 @@ export class ECSecretKey extends SecretKey {
     return new ECPublicKey(this.getType(), new Uint8Array(publicKeyBytes), this.privateKeyBytes);
   }
 
+  /**
+   * Clone SK asynchronously (preferred in browsers).
+   */
   async cloneAsync(): Promise<SecretKey> {
     const cloned = new ECSecretKey(this.getType());
     await cloned.initializeAsync(this.privateKeyBytes);
@@ -315,8 +360,9 @@ export class ECSecretKey extends SecretKey {
   }
 
   /**
-   * Clone the secret key (sync - Node.js only for backward compatibility)
-   * @deprecated Use cloneAsync() for better browser compatibility
+   * Clone SK (sync — **Node.js only**).
+   * @deprecated Use {@link cloneAsync}.
+   * @throws {Error} If called in a browser.
    */
   clone(): SecretKey {
     if (isBrowser()) {
@@ -328,12 +374,17 @@ export class ECSecretKey extends SecretKey {
     return cloned;
   }
 
-  /** Raw private scalar (32 bytes for P-256). Treat as secret material. */
+  /** Raw private scalar (**32** bytes for P-256). Treat as secret material. */
   toBytes(): Uint8Array {
     return new Uint8Array(this.privateKeyBytes);
   }
 
-  /** Import from raw private key bytes (Node.js sync path). */
+  /**
+   * Import from raw private key bytes (Node.js sync path only).
+   * @param type - EC suite.
+   * @param data - Raw scalar (**32** bytes for P-256).
+   * @returns Key, or `null` on failure / in browsers.
+   */
   static fromBytes(type: VRFType, data: Uint8Array): ECSecretKey | null {
     if (!isECType(type) || data.length === 0 || isBrowser()) {
       return null;
@@ -349,12 +400,20 @@ export class ECSecretKey extends SecretKey {
 }
 
 /**
- * EC VRF Public Key implementation
+ * EC VRF public key (P-256).
+ *
+ * **Serialization:** compressed SEC1 point, **33** bytes (`0x02`/`0x03` + X).
+ * Prefer {@link verifyVRFProofAsync} in browsers.
  */
 export class ECPublicKey extends PublicKey {
   private publicKeyBytes: Uint8Array = new Uint8Array(0);
   private privateKeyBytes: Uint8Array = new Uint8Array(0); // For verification
 
+  /**
+   * @param type - Optional EC suite.
+   * @param publicKey - Optional compressed point (**33** bytes).
+   * @param privateKey - Optional raw scalar used for stronger local verification.
+   */
   constructor(type?: VRFType, publicKey?: Uint8Array, privateKey?: Uint8Array) {
     super();
     if (type) {
@@ -372,6 +431,12 @@ export class ECPublicKey extends PublicKey {
     return this.publicKeyBytes.length > 0 && isECType(this.getType());
   }
 
+  /**
+   * Verify π for α (async — Node and browsers).
+   * @param input - Public input α.
+   * @param proof - Proof with serialized length **80** bytes.
+   * @returns `[ok, beta]` where `beta` is **32** bytes on success.
+   */
   async verifyVRFProofAsync(input: Uint8Array, proof: Proof): Promise<[boolean, Uint8Array]> {
     if (!this.isInitialized() || !proof.isInitialized()) {
       return [false, new Uint8Array(0)];
@@ -452,7 +517,11 @@ export class ECPublicKey extends PublicKey {
   }
 
   /**
-   * @deprecated Use verifyVRFProofAsync() in browsers
+   * Verify π for α (sync — **Node.js only**).
+   * @deprecated Use {@link verifyVRFProofAsync} in browsers.
+   * @param input - Public input α.
+   * @param proof - Proof with serialized length **80** bytes.
+   * @returns `[ok, beta]` where `beta` is **32** bytes on success.
    */
   verifyVRFProof(input: Uint8Array, proof: Proof): [boolean, Uint8Array] {
     if (!this.isInitialized() || !proof.isInitialized()) {
@@ -544,10 +613,17 @@ export class ECPublicKey extends PublicKey {
     return new ECPublicKey(this.getType(), this.publicKeyBytes, this.privateKeyBytes);
   }
 
+  /** Serialize PK — **33**-byte compressed point. */
   toBytes(): Uint8Array {
     return new Uint8Array(this.publicKeyBytes);
   }
 
+  /**
+   * Deserialize PK from a compressed SEC1 point.
+   * @param type - Must be an EC suite.
+   * @param data - **33** bytes starting with `0x02` or `0x03`.
+   * @returns `true` on success.
+   */
   fromBytes(type: VRFType, data: Uint8Array): boolean {
     if (!isECType(type)) {
       return false;
