@@ -24,7 +24,9 @@ A Verifiable Random Function (VRF) is a cryptographic public-key primitive that,
 - **Well-tested**: Full matrix over all VRF types; RFC 9381 RSA-FDH vectors from Microsoft libvrf
 - **Compliance helpers**: `isRFC9381Compliant()` and `getVRFSuiteInfo()` for safe integration
 - **Typed errors**: `VRFError` and `*OrThrow` APIs alongside legacy null-return methods
+- **Documented APIs**: JSDoc with `@throws` and byte-length expectations (IDE hover / `.d.ts`)
 
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 ## Installation
 
 ```bash
@@ -109,6 +111,18 @@ The library is available via CDN:
 ### Elliptic Curve VRFs
 - `EC_VRF_P256_SHA256_TAI` - Simplified EC VRF on P-256 / SHA-256 (not RFC 9381 wire-compatible)
 
+### Serialized sizes (common cases)
+
+| Suite | SK | PK | Proof π | Output β |
+|-------|----|----|---------|----------|
+| `EC_VRF_P256_SHA256_TAI` | 32 B raw scalar | 33 B compressed | 80 B | 32 B |
+| RSA-2048 (FDH / PSS) | PKCS#8 DER (var.) | SPKI DER (var.) | 256 B | 32 B (SHA-256) |
+| RSA-3072 | PKCS#8 DER (var.) | SPKI DER (var.) | 384 B | 32 B (SHA-256) |
+| RSA-4096 SHA-384 | PKCS#8 DER (var.) | SPKI DER (var.) | 512 B | 48 B |
+| RSA-4096 SHA-512 | PKCS#8 DER (var.) | SPKI DER (var.) | 512 B | 64 B |
+
+Full notes live in TypeScript JSDoc on `VRF`, `Proof`, `PublicKey`, and `SecretKey`.
+
 ## Quick Start
 
 ### Basic Usage
@@ -181,6 +195,8 @@ const rsaPssKey = VRF.create(VRFType.RSA_PSS_NOSALT_VRF_RSA2048_SHA256)!;
 
 ## API Reference
 
+The public surface is documented in TypeScript JSDoc (shipped in `.d.ts`): `@param`, `@returns`, `@throws` (`VRFError` / `VRFErrorCode`), and expected byte lengths.
+
 ### VRF
 
 The main class providing static methods for VRF operations.
@@ -204,11 +220,11 @@ Returns browser support and interoperability metadata for the suite.
 
 #### `VRF.proofFromBytes(type: VRFType, data: Uint8Array): Proof | null`
 
-Deserializes a VRF proof from bytes.
+Deserializes a VRF proof from bytes. Expected lengths: EC **80** B; RSA = modulus size (256 / 384 / 512). Prefer `proofFromBytesOrThrow` for typed errors.
 
 #### `VRF.publicKeyFromBytes(type: VRFType, data: Uint8Array): PublicKey | null`
 
-Deserializes a VRF public key from bytes.
+Deserializes a VRF public key from bytes. EC: **33** B compressed SEC1; RSA: SPKI DER. Prefer `publicKeyFromBytesOrThrow` for typed errors.
 
 #### `VRF.secretKeyToBytes(secretKey: SecretKey): Uint8Array | null`
 
@@ -394,4 +410,6 @@ The original C++ implementation by Microsoft Corporation provides a robust, prod
 For issues, questions, or contributions related to:
 - **This JavaScript port**: Please open issues in this repository
 - **The original C++ library**: Visit [https://github.com/Microsoft/libvrf](https://github.com/Microsoft/libvrf)
+
+Also see [SUPPORT.md](SUPPORT.md), [SECURITY.md](SECURITY.md), [RELEASE.md](RELEASE.md), and [ROADMAP.md](ROADMAP.md).
 

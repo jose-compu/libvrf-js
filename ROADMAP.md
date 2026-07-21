@@ -98,7 +98,7 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 | ID | Item | Tags |
 |----|------|------|
 | B-01 | TypeScript strict mode + eliminate remaining `@ts-expect-error` in EC path | `dx`, `crypto` |
-| B-02 | JSDoc on all public methods with `@throws` and byte-length expectations | `docs`, `dx` |
+| B-02 | ~~JSDoc on all public methods with `@throws` and byte-length expectations~~ (**done in v1.1.1**) | `docs`, `dx` |
 | B-03 | GitHub issue templates (bug, feature, security) | `infra` |
 | B-04 | SBOM on publish (CycloneDX) | `security`, `infra` |
 | B-05 | Subresource Integrity (SRI) hashes for CDN builds in README | `browser`, `docs` |
@@ -108,9 +108,9 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 
 ---
 
-## Suggested execution order (next 3 releases)
+## Suggested execution order (next releases)
 
-1. **v1.1.0** — R1-01, R1-03, R1-04, R1-05, R1-06 (quality + honesty, no crypto break)
+1. ~~**v1.1.0**~~ / ~~**v1.1.1**~~ — R1 quality + B-02 JSDoc (**shipped**)
 2. **v1.2.0** — R2-01, R2-02, R2-03, R2-04 (RFC compliance; **major** if EC wire format changes)
 3. **v2.0.0** — R3-01, R3-03, R3-06 (new suites + packaging; coordinate with R2 breaking changes if combined)
 
@@ -128,3 +128,4 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 | Version | Items | Notes |
 |---------|--------|--------|
 | **v1.1.0** | R1-01 … R1-12 | Docs honesty, `VRFError` / `*OrThrow`, compliance API, RSA RFC vectors, fast CI matrix + `test:full`, browser smoke, coverage gate, Dependabot, `CHANGELOG.md`, secret-key serde, async/sync docs, benchmark script |
+| **v1.1.1** | B-02 | JSDoc on public APIs (`@throws`, byte-length expectations) |

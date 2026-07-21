@@ -2,6 +2,13 @@
 
 ## Release History
 
+### v1.1.1 (2026-07-21)
+
+**Docs / DX patch (#37 / B-02)**
+
+- JSDoc on public APIs: `@throws`, `@param` / `@returns`, byte-length expectations
+- No runtime behavior change
+
 ### v1.1.0 (2026-05-19)
 
 **R1 — Trust & quality**

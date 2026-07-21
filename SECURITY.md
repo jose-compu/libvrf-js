@@ -26,7 +26,12 @@ This library implements Verifiable Random Functions (VRFs) which are cryptograph
 
 ## Supported Versions
 
-Security updates are provided for the latest released version only.
+| Version | Security updates |
+|---------|------------------|
+| **1.1.x** (latest) | Yes |
+| Older than 1.1.0 | No — upgrade to the latest release |
+
+Security updates are provided for the latest released line only. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Acknowledgments
 
