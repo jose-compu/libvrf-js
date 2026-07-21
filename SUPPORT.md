@@ -7,8 +7,9 @@ This project uses GitHub Issues to track bugs and feature requests.
 ### Before Filing an Issue
 
 1. Search existing issues to avoid duplicates
-2. Check the [README.md](README.md) for documentation
+2. Check the [README.md](README.md) and [CHANGELOG.md](CHANGELOG.md)
 3. Review the [examples](examples/) directory for usage patterns
+4. For planned work, see [ROADMAP.md](ROADMAP.md)
 
 ### Filing a New Issue
 

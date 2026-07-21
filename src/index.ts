@@ -1,14 +1,15 @@
 // Licensed under the MIT license.
 
 /**
- * libvrf - Verifiable Random Functions for Node.js and browsers
- * 
- * A Verifiable Random Function (VRF) is a cryptographic public-key primitive that,
- * from a secret key and a given input, produces a unique pseudorandom output,
- * along with a proof that the output was correctly computed.
- * 
- * RSA-FDH and RSA-PSS-NOSALT VRFs follow RFC 9381. EC VRF uses a simplified
+ * libvrf — Verifiable Random Functions for Node.js and browsers.
+ *
+ * A VRF maps a secret key and public input α to a unique pseudorandom output β
+ * and a proof π. Only the key holder produces π; anyone with the public key verifies it.
+ *
+ * RSA-FDH and RSA-PSS-NOSALT follow RFC 9381. EC VRF uses a simplified
  * construction and is not RFC 9381 compliant (see README).
+ *
+ * @packageDocumentation
  */
 
 // Export main VRF class

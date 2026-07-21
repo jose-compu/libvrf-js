@@ -6,6 +6,7 @@ import { VRFType, isRSAType, isECType } from './types';
  * Metadata describing interoperability and standards compliance for a VRF suite.
  */
 export interface VRFSuiteInfo {
+  /** Suite identifier. */
   type: VRFType;
   /** True when the suite matches RFC 9381 wire format and algorithms. */
   rfc9381Compliant: boolean;
@@ -19,16 +20,22 @@ export interface VRFSuiteInfo {
 }
 
 /**
- * Returns whether the given VRF type is RFC 9381 compliant in this library.
+ * Whether the given VRF type is RFC 9381 compliant in this library.
  * RSA-FDH and RSA-PSS-NOSALT suites follow RFC 9381; EC VRF uses a simplified
  * construction and is not RFC 9381 compliant (see README).
+ *
+ * @param type - Suite to query.
+ * @returns `true` for RSA suites; `false` for EC and unknown.
  */
 export function isRFC9381Compliant(type: VRFType): boolean {
   return isRSAType(type);
 }
 
 /**
- * Returns suite metadata, or null for {@link VRFType.UNKNOWN}.
+ * Returns suite metadata, or `null` for {@link VRFType.UNKNOWN}.
+ *
+ * @param type - Suite to describe.
+ * @returns {@link VRFSuiteInfo}, or `null` if `type` is unknown.
  */
 export function getVRFSuiteInfo(type: VRFType): VRFSuiteInfo | null {
   if (type === VRFType.UNKNOWN) {
