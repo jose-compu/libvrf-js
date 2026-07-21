@@ -1,6 +1,6 @@
 {
   "name": "libvrf",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Verifiable Random Functions (VRF) for Node.js and browsers - RFC 9381 RSA-FDH/PSS-NOSALT; simplified EC VRF (not RFC-interoperable)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

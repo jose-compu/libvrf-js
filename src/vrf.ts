@@ -9,11 +9,25 @@ import { isBrowser } from './utils';
 import { VRFError, VRFErrorCode } from './errors';
 
 /**
- * The main VRF class that encapsulates VRF operations. All methods are static.
+ * Static entry point for VRF key generation and (de)serialization.
+ *
+ * Prefer the `*OrThrow` variants when you want typed {@link VRFError} failures;
+ * the non-throwing variants return `null` on failure.
+ *
+ * **Byte-length expectations (common cases):**
+ * - EC (`EC_VRF_P256_SHA256_TAI`): SK raw scalar **32** bytes; PK compressed point **33** bytes;
+ *   proof **80** bytes (`fLen`); β **32** bytes.
+ * - RSA-2048: proof **256** bytes (modulus size); β = hash digest length (32 for SHA-256).
+ * - RSA-3072: proof **384** bytes; RSA-4096: proof **512** bytes.
+ * - RSA SK: PKCS#8 DER (variable length); RSA PK: SPKI DER (variable length).
  */
 export class VRF {
   /**
-   * Create a new VRF secret key (async - works in both Node.js and browsers).
+   * Create a new VRF secret key (async — works in Node.js and browsers).
+   *
+   * @param type - Suite to generate (RSA or EC).
+   * @returns Initialized {@link SecretKey}, or `null` on failure.
+   * @see {@link createAsyncOrThrow}
    */
   static async createAsync(type: VRFType): Promise<SecretKey | null> {
     try {
@@ -24,7 +38,12 @@ export class VRF {
   }
 
   /**
-   * Creates a new VRF secret key; throws {@link VRFError} on failure.
+   * Create a new VRF secret key; throws {@link VRFError} on failure.
+   *
+   * @param type - Suite to generate (RSA or EC).
+   * @returns Initialized {@link SecretKey}.
+   * @throws {VRFError} {@link VRFErrorCode.INVALID_TYPE} if `type` is unsupported.
+   * @throws {VRFError} {@link VRFErrorCode.KEY_GENERATION_FAILED} if key material cannot be created.
    */
   static async createAsyncOrThrow(type: VRFType): Promise<SecretKey> {
     if (!isRSAType(type) && !isECType(type)) {
@@ -51,9 +70,12 @@ export class VRF {
   }
 
   /**
-   * Creates a new VRF secret key for the specified VRF type.
-   * For browsers and EC VRF, prefer using createAsync().
-   * Returns the created secret key object, or null if key generation fails.
+   * Create a new VRF secret key (sync — **Node.js only**).
+   * In browsers, use {@link createAsync} instead.
+   *
+   * @param type - Suite to generate (RSA or EC).
+   * @returns Initialized {@link SecretKey}, or `null` on failure.
+   * @see {@link createOrThrow}
    */
   static create(type: VRFType): SecretKey | null {
     try {
@@ -64,7 +86,13 @@ export class VRF {
   }
 
   /**
-   * Creates a new VRF secret key; throws {@link VRFError} on failure.
+   * Create a new VRF secret key (sync — **Node.js only**); throws {@link VRFError} on failure.
+   *
+   * @param type - Suite to generate (RSA or EC).
+   * @returns Initialized {@link SecretKey}.
+   * @throws {VRFError} {@link VRFErrorCode.BROWSER_SYNC_API} if called in a browser.
+   * @throws {VRFError} {@link VRFErrorCode.INVALID_TYPE} if `type` is unsupported.
+   * @throws {VRFError} {@link VRFErrorCode.KEY_GENERATION_FAILED} if key material cannot be created.
    */
   static createOrThrow(type: VRFType): SecretKey {
     if (isBrowser()) {
@@ -95,8 +123,14 @@ export class VRF {
   }
 
   /**
-   * Create an RSA VRF secret key from prime factors p and q (big-endian unsigned).
-   * Used for RFC 9381 test vectors and importing trusted RSA keys.
+   * Create an RSA VRF secret key from prime factors `p` and `q` (big-endian unsigned).
+   * Intended for RFC 9381 test vectors and importing trusted RSA keys.
+   *
+   * @param type - Must be an RSA VRF suite.
+   * @param p - First prime factor (non-empty big-endian bytes).
+   * @param q - Second prime factor (non-empty big-endian bytes).
+   * @returns Initialized RSA {@link SecretKey}, or `null` on failure.
+   * @see {@link createRsaFromPrimesOrThrow}
    */
   static createRsaFromPrimes(type: VRFType, p: Uint8Array, q: Uint8Array): SecretKey | null {
     try {
@@ -108,6 +142,13 @@ export class VRF {
 
   /**
    * Create an RSA VRF secret key from prime factors; throws {@link VRFError} on failure.
+   *
+   * @param type - Must be an RSA VRF suite.
+   * @param p - First prime factor (non-empty big-endian bytes).
+   * @param q - Second prime factor (non-empty big-endian bytes).
+   * @returns Initialized RSA {@link SecretKey}.
+   * @throws {VRFError} {@link VRFErrorCode.INVALID_TYPE} if `type` is not RSA.
+   * @throws {VRFError} {@link VRFErrorCode.KEY_GENERATION_FAILED} if primes are empty or key construction fails.
    */
   static createRsaFromPrimesOrThrow(type: VRFType, p: Uint8Array, q: Uint8Array): SecretKey {
     if (!isRSAType(type)) {
@@ -133,7 +174,15 @@ export class VRF {
   }
 
   /**
-   * Deserializes a VRF proof from a Uint8Array for the specified VRF type.
+   * Deserialize a VRF proof from bytes.
+   *
+   * **Expected lengths:** EC P-256 proof **80** bytes; RSA proof = modulus byte length
+   * (256 / 384 / 512 for 2048 / 3072 / 4096).
+   *
+   * @param type - Suite that produced the proof.
+   * @param data - Serialized proof (must be non-empty).
+   * @returns {@link Proof}, or `null` on failure.
+   * @see {@link proofFromBytesOrThrow}
    */
   static proofFromBytes(type: VRFType, data: Uint8Array): Proof | null {
     try {
@@ -144,7 +193,13 @@ export class VRF {
   }
 
   /**
-   * Deserializes a VRF proof; throws {@link VRFError} on failure.
+   * Deserialize a VRF proof; throws {@link VRFError} on failure.
+   *
+   * @param type - Suite that produced the proof.
+   * @param data - Serialized proof (must be non-empty; see {@link proofFromBytes} for lengths).
+   * @returns Initialized {@link Proof}.
+   * @throws {VRFError} {@link VRFErrorCode.INVALID_TYPE} if `type` is unsupported.
+   * @throws {VRFError} {@link VRFErrorCode.DESERIALIZATION_FAILED} if `data` is empty or invalid.
    */
   static proofFromBytesOrThrow(type: VRFType, data: Uint8Array): Proof {
     if (!isECType(type) && !isRSAType(type)) {
@@ -171,7 +226,16 @@ export class VRF {
   }
 
   /**
-   * Deserializes a VRF public key from a Uint8Array for the specified VRF type.
+   * Deserialize a VRF public key from bytes.
+   *
+   * **Expected formats / lengths:**
+   * - EC: compressed SEC1 point, **33** bytes (`0x02`/`0x03` prefix).
+   * - RSA: SPKI DER (`pkcs8-public-der`), variable length.
+   *
+   * @param type - Suite for the public key.
+   * @param data - Serialized public key (must be non-empty).
+   * @returns {@link PublicKey}, or `null` on failure.
+   * @see {@link publicKeyFromBytesOrThrow}
    */
   static publicKeyFromBytes(type: VRFType, data: Uint8Array): PublicKey | null {
     try {
@@ -182,7 +246,13 @@ export class VRF {
   }
 
   /**
-   * Deserializes a VRF public key; throws {@link VRFError} on failure.
+   * Deserialize a VRF public key; throws {@link VRFError} on failure.
+   *
+   * @param type - Suite for the public key.
+   * @param data - Serialized public key (must be non-empty; see {@link publicKeyFromBytes}).
+   * @returns Initialized {@link PublicKey}.
+   * @throws {VRFError} {@link VRFErrorCode.INVALID_TYPE} if `type` is unsupported.
+   * @throws {VRFError} {@link VRFErrorCode.DESERIALIZATION_FAILED} if `data` is empty or invalid.
    */
   static publicKeyFromBytesOrThrow(type: VRFType, data: Uint8Array): PublicKey {
     if (!isECType(type) && !isRSAType(type)) {
@@ -209,8 +279,16 @@ export class VRF {
   }
 
   /**
-   * Serialize a secret key. RSA: PKCS#8 DER; EC: raw private scalar.
-   * Warning: output is sensitive; never log or commit these bytes.
+   * Serialize a secret key.
+   *
+   * **Formats:**
+   * - RSA: PKCS#8 DER private key (variable length).
+   * - EC: raw private scalar (**32** bytes for P-256).
+   *
+   * **Warning:** output is sensitive; never log or commit these bytes.
+   *
+   * @param secretKey - Initialized secret key.
+   * @returns Serialized bytes, or `null` if the key is not initialized / has no exporter.
    */
   static secretKeyToBytes(secretKey: SecretKey): Uint8Array | null {
     if (!secretKey.isInitialized()) {
@@ -234,8 +312,15 @@ export class VRF {
   }
 
   /**
-   * Deserialize a secret key. Returns null on failure.
-   * EC import uses the Node.js sync path; use createAsync in browsers.
+   * Deserialize a secret key. Returns `null` on failure.
+   *
+   * **Formats:** same as {@link secretKeyToBytes}.
+   * EC import uses the Node.js sync path; prefer {@link createAsync} in browsers.
+   *
+   * @param type - Suite for the secret key.
+   * @param data - Serialized secret key (must be non-empty).
+   * @returns {@link SecretKey}, or `null` on failure.
+   * @see {@link secretKeyFromBytesOrThrow}
    */
   static secretKeyFromBytes(type: VRFType, data: Uint8Array): SecretKey | null {
     try {
@@ -247,6 +332,12 @@ export class VRF {
 
   /**
    * Deserialize a secret key; throws {@link VRFError} on failure.
+   *
+   * @param type - Suite for the secret key.
+   * @param data - Serialized secret key (must be non-empty; see {@link secretKeyToBytes}).
+   * @returns Initialized {@link SecretKey}.
+   * @throws {VRFError} {@link VRFErrorCode.INVALID_TYPE} if `type` is unsupported.
+   * @throws {VRFError} {@link VRFErrorCode.DESERIALIZATION_FAILED} if `data` is empty or invalid.
    */
   static secretKeyFromBytesOrThrow(type: VRFType, data: Uint8Array): SecretKey {
     if (!isRSAType(type) && !isECType(type)) {

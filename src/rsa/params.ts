@@ -3,8 +3,15 @@
 import { VRFType } from '../types';
 import { constants } from 'crypto';
 
+/**
+ * Domain parameters for an RSA VRF suite (RFC 9381 FDH / PSS-NOSALT).
+ *
+ * Proof π length equals `bits / 8` (256 / 384 / 512). β length equals the
+ * digest size (32 / 48 / 64 for SHA-256 / SHA-384 / SHA-512).
+ */
 export interface RSAVRFParams {
   algorithmName: string;
+  /** Modulus bit length (2048, 3072, or 4096). */
   bits: number;
   primes: number;
   e: number;
@@ -14,7 +21,10 @@ export interface RSAVRFParams {
 }
 
 /**
- * Get RSA VRF parameters for a given VRF type
+ * Domain parameters for an RSA VRF suite, or `null` if `type` is not RSA.
+ *
+ * @param type - VRF suite.
+ * @returns {@link RSAVRFParams}, or `null`.
  */
 export function getRSAVRFParams(type: VRFType): RSAVRFParams | null {
   switch (type) {
