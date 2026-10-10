@@ -3,7 +3,7 @@
 import { VRFType, isECType } from '../types';
 import { Proof, PublicKey, SecretKey } from '../base';
 import { getECVRFParams } from './params';
-import { concatBytes, hash, hashAsync, isBrowser } from '../utils';
+import { bytesEqual, concatBytes, hash, hashAsync, isBrowser } from '../utils';
 import { ECDHInterface, createECDHAsync } from './ecdh-wrapper';
 import { createECDH } from 'crypto';
 
@@ -485,15 +485,7 @@ export class ECPublicKey extends PublicKey {
           offset += toCopy;
         }
         
-        // Constant-time comparison
-        let match = true;
-        for (let i = 0; i < params.fLen; i++) {
-          if (proofBytes[i] !== expectedProof[i]) {
-            match = false;
-          }
-        }
-        
-        return match ? [true, proofValue] : [false, new Uint8Array(0)];
+        return bytesEqual(proofBytes, expectedProof) ? [true, proofValue] : [false, new Uint8Array(0)];
       }
       
       // Public key only verification
@@ -575,15 +567,7 @@ export class ECPublicKey extends PublicKey {
           offset += toCopy;
         }
         
-        // Constant-time comparison
-        let match = true;
-        for (let i = 0; i < params.fLen; i++) {
-          if (proofBytes[i] !== expectedProof[i]) {
-            match = false;
-          }
-        }
-        
-        return match ? [true, proofValue] : [false, new Uint8Array(0)];
+        return bytesEqual(proofBytes, expectedProof) ? [true, proofValue] : [false, new Uint8Array(0)];
       }
       
       // Public key only verification:

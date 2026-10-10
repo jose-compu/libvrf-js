@@ -21,14 +21,14 @@ This library implements Verifiable Random Functions (VRFs) which are cryptograph
 
 1. **Key Management**: Protect secret keys appropriately. Never commit them to version control.
 2. **Random Number Generation**: This library uses Node.js's `crypto.randomBytes()` which is cryptographically secure.
-3. **Side-Channel Attacks**: While we attempt constant-time operations where feasible, complete side-channel resistance is not guaranteed.
+3. **Side-Channel Attacks**: Equal-length byte comparisons use `crypto.timingSafeEqual` on Node.js (`bytesEqual`). A length mismatch returns immediately; serialized proof and key lengths are public. JavaScript `bigint` arithmetic (`modPow`, `modInverse`) is variable-time and is not used to compare secret material. Complete side-channel resistance is not guaranteed.
 4. **Production Use**: This is a JavaScript port of Microsoft's libvrf. For production systems requiring maximum security, consider the original C++ implementation.
 
 ## Supported Versions
 
 | Version | Security updates |
 |---------|------------------|
-| **1.1.x** (latest) | Yes |
+| **1.2.x** (latest) | Yes |
 | Older than 1.1.0 | No — upgrade to the latest release |
 
 Security updates are provided for the latest released line only. See [CHANGELOG.md](CHANGELOG.md).

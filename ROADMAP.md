@@ -49,7 +49,9 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 
 ---
 
-## R2 — v1.2.x (Compliance & interop)
+## R2 — Compliance & interop
+
+Quality items R2-06 … R2-08 shipped in **v1.2.0** (non-breaking). Wire-format items R2-01 … R2-05 are **v2.0.0 / set C** (breaking for EC proofs).
 
 | ID | Item | Tags | Priority |
 |----|------|------|----------|
@@ -58,9 +60,9 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 | R2-03 | Proof wire format compatible with C++ libvrf and other RFC implementations | `interop`, `breaking` | P0 |
 | R2-04 | Migration guide: v1 EC proofs → v2 (breaking change communication) | `docs`, `breaking` | P1 |
 | R2-05 | Optional `VRFType` alias preserving legacy EC behavior behind `EC_VRF_P256_SHA256_TAI_LEGACY` | `api`, `interop` | P2 |
-| R2-06 | Constant-time comparisons audit (`bytesEqual`, bigint paths) | `security`, `crypto` | P1 |
-| R2-07 | Property-based tests (e.g. fast-check): round-trip serialize, verify rejects tampered proofs | `test` | P2 |
-| R2-08 | Fuzz targets for `proofFromBytes` / `publicKeyFromBytes` (jsfuzz or CI cron) | `test`, `security` | P2 |
+| R2-06 | ~~Constant-time comparisons audit (`bytesEqual`, bigint paths)~~ (**done in v1.2.0**) | `security`, `crypto` | P1 |
+| R2-07 | ~~Property-based tests (fast-check): round-trip serialize, verify rejects tampered proofs~~ (**done in v1.2.0**) | `test` | P2 |
+| R2-08 | ~~Fuzz `proofFromBytes` / `publicKeyFromBytes` in CI~~ (**done in v1.2.0**; dedicated jsfuzz cron not required) | `test`, `security` | P2 |
 
 ---
 
@@ -99,7 +101,7 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 |----|------|------|
 | B-01 | TypeScript strict mode + eliminate remaining `@ts-expect-error` in EC path | `dx`, `crypto` |
 | B-02 | ~~JSDoc on all public methods with `@throws` and byte-length expectations~~ (**done in v1.1.1**) | `docs`, `dx` |
-| B-03 | GitHub issue templates (bug, feature, security) | `infra` |
+| B-03 | ~~GitHub issue templates (bug, feature, security)~~ (**present** in `.github/ISSUE_TEMPLATE/`) | `infra` |
 | B-04 | SBOM on publish (CycloneDX) | `security`, `infra` |
 | B-05 | Subresource Integrity (SRI) hashes for CDN builds in README | `browser`, `docs` |
 | B-06 | Ed25519 / X25519 VRF research (not in RFC 9381 today; track IETF drafts) | `crypto` |
@@ -111,8 +113,32 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 ## Suggested execution order (next releases)
 
 1. ~~**v1.1.0**~~ / ~~**v1.1.1**~~ — R1 quality + B-02 JSDoc (**shipped**)
-2. **v1.2.0** — R2-01, R2-02, R2-03, R2-04 (RFC compliance; **major** if EC wire format changes)
-3. **v2.0.0** — R3-01, R3-03, R3-06 (new suites + packaging; coordinate with R2 breaking changes if combined)
+2. ~~**v1.2.0**~~ — R2-06, R2-07, R2-08 quality (**shipped**, non-breaking)
+3. **v1.3.0 — set B** (DX / packaging, non-breaking) — see below
+4. **v2.0.0 — set C** (RFC 9381 EC VRF, **breaking**) — see below
+5. Later platform work stays on R3 (P-384/P-521, tree-shakeable entries) after the EC wire-format break
+
+### v1.3.0 — set B (DX / packaging)
+
+Not in 1.2.0. No crypto changes.
+
+| ID | Item | Notes |
+|----|------|--------|
+| B-03 | Issue templates | Already in `.github/ISSUE_TEMPLATE/` (`bug_report`, `feature_request`, `security`). Close when confirmed on the default branch. |
+| B-05 | SRI hashes for CDN builds | Publish `integrity` hashes for `libvrf.min.js` in the README (jsDelivr / unpkg). |
+| R3-06 | Dual-package exports cleanup | `exports` conditions for `import` / `require` / `types` / `browser` so Node and bundlers resolve the same entry. |
+
+### v2.0.0 — set C (RFC 9381 EC VRF)
+
+Breaking for existing EC proofs and β. Do not ship this as a minor.
+
+| ID | Item | Notes |
+|----|------|--------|
+| R2-01 | Full RFC 9381 ECVRF-P256-SHA256-TAI | Replace the simplified browser construction. |
+| R2-02 | Official test vectors | Prove, verify, and negative cases under `tests/fixtures/`. |
+| R2-03 | C++ wire format | Proof bytes compatible with Microsoft libvrf and other RFC implementations. |
+| R2-04 | Migration guide | How v1 EC proofs and keys differ from v2. |
+| R2-05 | Legacy alias (optional) | `EC_VRF_P256_SHA256_TAI_LEGACY` keeps the v1 construction for callers who must not break. |
 
 ---
 
@@ -129,3 +155,4 @@ Brainstorm backlog for improvements and features. Each item has **category tags*
 |---------|--------|--------|
 | **v1.1.0** | R1-01 … R1-12 | Docs honesty, `VRFError` / `*OrThrow`, compliance API, RSA RFC vectors, fast CI matrix + `test:full`, browser smoke, coverage gate, Dependabot, `CHANGELOG.md`, secret-key serde, async/sync docs, benchmark script |
 | **v1.1.1** | B-02 | JSDoc on public APIs (`@throws`, byte-length expectations) |
+| **v1.2.0** | R2-06, R2-07, R2-08 | `timingSafeEqual` for equal-length compares; `fast-check` round-trips and tamper rejection; deserialization fuzz. EC wire format unchanged. Set B scheduled for v1.3.0; set C (RFC EC) for v2.0.0. |
