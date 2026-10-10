@@ -2,6 +2,14 @@
 
 ## Release History
 
+### v1.2.0 (2026-10-10)
+
+**Quality (R2-06, R2-07, R2-08) — non-breaking**
+
+- Equal-length `bytesEqual` uses `crypto.timingSafeEqual` on Node.js
+- `fast-check` property tests and deserialization fuzz in the default test suite
+- EC wire format is unchanged (RFC 9381 EC VRF remains a future 2.0.0)
+
 ### v1.1.1 (2026-07-21)
 
 **Docs / DX patch (#37 / B-02)**
