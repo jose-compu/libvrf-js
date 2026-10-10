@@ -13,6 +13,7 @@ import {
   rsaPssNoSaltSign,
   rsaPssNoSaltVerify,
 } from './rfc9381';
+import { bytesEqual } from '../utils';
 
 /**
  * RSA VRF proof π (RFC 9381 FDH / PSS-NOSALT).
@@ -403,12 +404,4 @@ export class RSAPublicKey extends PublicKey {
       return false;
     }
   }
-}
-
-function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
 }
