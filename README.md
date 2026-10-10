@@ -21,7 +21,7 @@ A Verifiable Random Function (VRF) is a cryptographic public-key primitive that,
 - **Multiple VRF algorithms**: RSA-FDH and RSA-PSS-NOSALT (RFC 9381); simplified EC VRF (not RFC-interoperable)
 - **Node.js & Browsers**: EC VRF works in both Node.js and browsers; RSA VRFs work in Node.js only
 - **Type-safe**: Written in TypeScript with full type definitions
-- **Well-tested**: Full matrix over all VRF types; RFC 9381 RSA-FDH vectors from Microsoft libvrf
+- **Well-tested**: Full matrix over all VRF types; RFC 9381 RSA-FDH vectors; `fast-check` property tests and deserialization fuzz
 - **Compliance helpers**: `isRFC9381Compliant()` and `getVRFSuiteInfo()` for safe integration
 - **Typed errors**: `VRFError` and `*OrThrow` APIs alongside legacy null-return methods
 - **Documented APIs**: JSDoc with `@throws` and byte-length expectations (IDE hover / `.d.ts`)

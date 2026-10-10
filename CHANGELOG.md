@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.0] - 2026-10-10
+
+### Changed
+
+- `bytesEqual` uses `crypto.timingSafeEqual` for equal-length buffers (length mismatch still returns immediately)
+
+### Added
+
+- Property tests (`fast-check`): serialize round-trips and tampered-proof rejection (EC and RSA-2048)
+- Deserialization fuzz: `proofFromBytes` / `publicKeyFromBytes` return `null` or throw `VRFError` only
+
 ## [1.1.1] - 2026-07-21
 
 ### Added

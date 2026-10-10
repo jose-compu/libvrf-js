@@ -1,6 +1,6 @@
 // Licensed under the MIT license.
 
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 
 /**
  * Check if running in browser environment
@@ -52,17 +52,27 @@ export function concatBytes(...arrays: Uint8Array[]): Uint8Array {
 }
 
 /**
- * Constant-time-ish equality (length check then byte walk; not hardened against timing).
+ * Compare two byte strings.
+ *
+ * Lengths are treated as public: a length mismatch returns immediately.
+ * When lengths match, Node uses `crypto.timingSafeEqual`. Browsers (no Node
+ * `crypto`) walk every byte with XOR and do not return on the first difference.
+ *
  * @param a - First buffer.
  * @param b - Second buffer.
  * @returns `true` iff lengths and contents match.
  */
 export function bytesEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
+  if (a.length === 0) return true;
+  if (typeof timingSafeEqual === 'function') {
+    return timingSafeEqual(a, b);
   }
-  return true;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i] ^ b[i];
+  }
+  return diff === 0;
 }
 
 /**
@@ -128,7 +138,9 @@ export function bytesToBigInt(bytes: Uint8Array): bigint {
 }
 
 /**
- * Perform modular exponentiation: (base^exp) mod modulus
+ * Modular exponentiation: (base^exp) mod modulus.
+ *
+ * JavaScript `bigint` arithmetic is variable-time. This is not used to compare secrets.
  */
 export function modPow(base: bigint, exp: bigint, modulus: bigint): bigint {
   let result = 1n;
@@ -144,7 +156,9 @@ export function modPow(base: bigint, exp: bigint, modulus: bigint): bigint {
 }
 
 /**
- * Compute modular inverse using extended Euclidean algorithm
+ * Modular inverse via the extended Euclidean algorithm.
+ *
+ * JavaScript `bigint` arithmetic is variable-time. This is not used to compare secrets.
  */
 export function modInverse(a: bigint, m: bigint): bigint {
   const m0 = m;
