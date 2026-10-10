@@ -34,6 +34,7 @@
     <section class="hero" id="top">
       <div>
         <p class="section-label" data-i18n="hero.label">Verifiable randomness</p>
+        <p class="version-badge">v1.2.0</p>
         <h1 data-i18n-html="hero.title">Random you can prove.<br>Verification anyone can run.</h1>
         <p class="lead" data-i18n-html="hero.lead"></p>
         <div class="hero-badges">
@@ -181,6 +182,10 @@
       </div>
 
       <div class="callout" data-i18n-html="library.callout"></div>
+      <div class="callout">
+        <strong>v1.2.0:</strong> <code>bytesEqual</code> uses <code>crypto.timingSafeEqual</code> for equal-length buffers.
+        Property tests cover serialize round-trips; deserialization fuzz accepts only <code>null</code> or <code>VRFError</code>.
+      </div>
     </section>
 
     <section id="quickstart">
@@ -206,7 +211,7 @@ console.log(ok, Buffer.from(beta).toString('hex'));</code></pre>
     </section>
 
     <footer>
-      <p data-i18n-html="footer.text"></p>
+      <p>libvrf v1.2.0 · <span data-i18n-html="footer.text"></span></p>
     </footer>
   </main>
 </body>

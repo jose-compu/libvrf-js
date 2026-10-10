@@ -124,6 +124,19 @@ h2 {
 
 .lead strong { color: var(--text); }
 
+.version-badge {
+  display: inline-block;
+  margin: 0 0 0.75rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  background: #fff;
+}
+
 /* Hero */
 .hero {
   display: grid;
