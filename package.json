@@ -1,6 +1,6 @@
 {
   "name": "libvrf",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Verifiable Random Functions (VRF) for Node.js and browsers - RFC 9381 RSA-FDH/PSS-NOSALT; simplified EC VRF (not RFC-interoperable)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -68,7 +68,7 @@
   "homepage": "https://github.com/jose-blockchain/libvrf-js#readme",
   "devDependencies": {
     "@types/jest": "^29.5.11",
-    "@types/node": "^20.10.6",
+    "@types/node": "^20.19.43",
     "@types/node-rsa": "^1.1.4",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
@@ -76,10 +76,10 @@
     "eslint": "^8.56.0",
     "fast-check": "^4.10.2",
     "jest": "^30.4.2",
-    "ts-jest": "^29.1.1",
-    "ts-loader": "^9.5.1",
+    "ts-jest": "^29.4.14",
+    "ts-loader": "^9.6.2",
     "typescript": "^5.3.3",
-    "webpack": "^5.89.0",
+    "webpack": "^5.111.1",
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {

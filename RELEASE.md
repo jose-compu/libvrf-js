@@ -2,6 +2,13 @@
 
 ## Release History
 
+### v1.2.1 (2026-10-10)
+
+**Dependency patch**
+
+- `@types/node` 20.19.43, `ts-jest` 29.4.14, `ts-loader` 9.6.2, `webpack` 5.111.1
+- No API change. Major upgrades (ESLint 10, TypeScript 7, `node-rsa` 2, `webpack-cli` 7) were not taken.
+
 ### v1.2.0 (2026-10-10)
 
 **Quality (R2-06, R2-07, R2-08) — non-breaking**

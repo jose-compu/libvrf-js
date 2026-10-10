@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [1.2.1] - 2026-10-10
+
+### Changed
+
+- Dev dependencies within the current major: `@types/node` 20.19.43, `ts-jest` 29.4.14, `ts-loader` 9.6.2, `webpack` 5.111.1
+- Left on the current major: ESLint 8, TypeScript 5, `typescript-eslint` 6, `webpack-cli` 5, `node-rsa` 1, `@types/jest` 29
+
 ## [1.2.0] - 2026-10-10
 
 ### Changed
